@@ -16,7 +16,7 @@ class Window {
     int _horRes;
     int _vertRes;
 public:
-    Math math;
+    Math _math;
 
     Window();
 

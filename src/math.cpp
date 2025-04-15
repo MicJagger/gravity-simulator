@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+#include "definitions.hpp"
+
 #ifdef _WIN32
     #include <windows.h>
 #endif
@@ -59,6 +61,15 @@ void Math::sleep(double seconds) {
     while (std::chrono::high_resolution_clock::now() - start < delay);
 }
 
+Math::Math() {
+    _targetTickSpeed = 60;
+}
+
+int Math::SetTickSpeed(double tickSpeed) {
+    _targetTickSpeed = tickSpeed;
+    return SUCCESS;
+}
+
 void Math::TickStart() {
     _tickStart = std::chrono::steady_clock::now();
 }
@@ -69,5 +80,7 @@ void Math::TickEnd() {
 
 void Math::TickEndAndSleep() {
     _tickEnd = std::chrono::steady_clock::now();
-    sleep((_tickEnd - _tickStart).count() / 1e9);
+    double tickDuration = (_tickEnd - _tickStart).count() / 1e9;
+    double totalDuration = (1.0 / _targetTickSpeed);
+    sleep(totalDuration - tickDuration);
 }

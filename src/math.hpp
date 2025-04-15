@@ -11,10 +11,15 @@ const double g = 9.80665;
 const double pi = 3.1415926536;
 
 class Math {
+    double _targetTickSpeed;
     std::chrono::steady_clock::time_point _tickStart;
     std::chrono::steady_clock::time_point _tickEnd;
 public:
     static void sleep(double seconds);
+
+    Math();
+
+    int SetTickSpeed(double tickSpeed);
 
     // tracks beginning of a frame
     void TickStart();

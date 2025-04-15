@@ -5,25 +5,27 @@
 #include "body.hpp"
 #include "definitions.hpp"
 #include "math.hpp"
+#include "universe.hpp"
 #include "window.hpp"
 
 // handles the physics of all the objects
-void PhysicsThread(int* sigIn, int* sigOut);
+void PhysicsThread(int* sigIn, int* sigOut, Universe* universe);
 // handles drawing of the frames
-void RenderThread(int* sigIn, int* sigOut, Window window);
+void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window);
 
 // handles user inputs
 int main(int argc, char* argv[]) {
     int failVal = 0;
 
+    Universe universe;
     Window window;
     if ((failVal = window.Setup()) < SUCCESS) {
         return failVal;
     }
     int physIn, physOut = 1;
-    std::thread physicsThread = std::thread(PhysicsThread, &physIn, &physOut);
+    std::thread physicsThread = std::thread(PhysicsThread, &physIn, &physOut, &universe);
     int renderIn, renderOut = 1;
-    std::thread renderThread = std::thread(PhysicsThread, &renderIn, &renderOut);
+    std::thread renderThread = std::thread(RenderThread, &renderIn, &renderOut, &universe, &window);
     int returnVal = 0;
     
     bool running = true;
@@ -59,20 +61,22 @@ int main(int argc, char* argv[]) {
     return returnVal;
 }
 
-void PhysicsThread(int* sigIn, int* sigOut) {
+void PhysicsThread(int* sigIn, int* sigOut, Universe* universe) {
     while (true) {
-
+        universe->_math.TickStart();
         if (*sigIn <= SUCCESS) {
             break;
         }
+        universe->_math.TickEndAndSleep();
     }
 }
 
-void RenderThread(int* sigIn, int* sigOut, Window window) {
+void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window) {
     while (true) {
-
+        window->_math.TickStart();
         if (*sigIn <= SUCCESS) {
             break;
         }
+        window->_math.TickEndAndSleep();
     }
 }

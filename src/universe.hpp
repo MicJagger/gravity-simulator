@@ -12,8 +12,9 @@ class Universe {
     std::map<long long, Body> _bodies;
     double _tickSpeed;
     double _timeScaling;
-    Math _math;
 public:
+    Math _math;
+
     Universe();
 };
 
