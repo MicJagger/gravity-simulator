@@ -6,6 +6,7 @@
 #include "external/include_sdl.hpp"
 
 #include "definitions.hpp"
+#include "math.hpp"
 
 Window::Window() {
     _horRes = 1280;
@@ -124,4 +125,18 @@ int Window::Setup() {
     glDeleteShader(fragmentShader);
 
     return SUCCESS;
+}
+
+std::vector<unsigned int> Window::PollEvent() {
+    std::vector<unsigned int> events;
+    while (SDL_PollEvent(&_windowEvent)) {
+        events.push_back(_windowEvent.type);
+    }
+    return events;
+}
+
+int Window::DrawFrame() {
+
+    SDL_GL_SwapWindow(_window);
+    return FAIL;
 }
