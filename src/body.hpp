@@ -15,13 +15,15 @@ struct Body {
     double _yVel;
     // m/s
     double _zVel;
+    // m
+    double _radius;
     // kg
     double _mass;
 
     Body() {
         _x, _y, _z = 0;
         _xVel, _yVel, _zVel = 0;
-        _mass = 0;
+        _radius, _mass = 0;
     }
 };
 

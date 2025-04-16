@@ -1,6 +1,8 @@
 #include "window.hpp"
 
 #include <iostream>
+#include <map>
+#include <vector>
 
 #include "external/include_glad.hpp"
 #include "external/include_sdl.hpp"
@@ -67,16 +69,43 @@ int Window::SetupOpenGL() {
         "void main()\n"
         "{\n"
         "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-        "}\0";
+        "}\0";//*/
+
+    /*constexpr auto vertexShaderSource = R"(
+        #version 330 core
+        layout (location = 0) in vec3 aPos;
+        layout (location = 1) in vec3 aColor;
+
+        uniform mat4 modelMatrix;
+
+        out vec3 vertexColor;
+
+        void main() {
+            gl_Position = modelMatrix * vec4(aPos.x, aPos.y, aPos.z, 1.0);
+            vertexColor = aColor;
+        }
+    )";//*/
 
     // fragment shader for compilation
-    const char* fragmentShaderSource = "#version 330 core\n"
-        "out vec4 FragColor;\n"
-        "void main()\n"
-        "{\n"
-        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-        "}\0";
+    constexpr auto fragmentShaderSource = R"(
+        #version 330 core
+        out vec4 FragColor;
+        void main() {
+           FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+        };
+    )";//*/
     
+    /*constexpr auto fragmentShaderSource = R"(
+        #version 330 core
+        out vec4 FragColor;
+
+        in vec3 vertexColor;
+
+        void main() {
+            FragColor = vec4(vertexColor, 1.0);
+        }
+    )";//*/
+
     // create shader object
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -130,6 +159,23 @@ int Window::SetupOpenGL() {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+    // setup other stuffs
+
+    glGenBuffers(1, &VBO);
+    glGenVertexArrays(1, &VAO);
+
+    // set it to be for vertices
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    // bind Vertex Array Object
+    glBindVertexArray(VAO);
+
+    // set vertex attributes pointers
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
     return SUCCESS;
 }
 
@@ -141,40 +187,57 @@ std::vector<unsigned int> Window::PollEvent() {
     return events;
 }
 
-int Window::DrawFrame() {
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#include <array>
+static constexpr auto triangleVertexIndices = std::array{
+    // front
+    0, 1, 2, // first triangle
+    2, 3, 0, // second triangle
 
-    // vertex data
+    // top
+    4, 5, 6, // first triangle
+    6, 7, 4, // second triangle
+
+    // left
+    8, 9, 10,  // first triangle
+    10, 11, 8, // second triangle
+
+    // right
+    14, 13, 12, // 12, 13, 14, // first triangle
+    12, 15, 14, // 14, 15, 12, // second triangle
+
+    // back
+    18, 17, 16, // 16, 17, 18, // first triangle
+    16, 19, 18, // 18, 19, 16, // second triangle
+
+    // bottom
+    20, 21, 22, // first triangle
+    22, 23, 20  // second triangle
+};
+
+int Window::DrawFrame(Universe* universe) {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    const std::map<long long, Body>* bodies = universe->GetBodies();
+
+    for (auto iter = bodies->begin(); iter != bodies->end(); iter++) {
+
+    }
+
+    // test vertex data
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        0.0f,  0.5f, 0.0f
+        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f
     };
 
-    // vertex buffer object
-    GLuint VBO;
-    glGenBuffers(1, &VBO);
-
-    // vertex array object
-    GLuint VAO;
-    glGenVertexArrays(1, &VAO);
-
-    // set it to be for vertices
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // bind Vertex Array Object
-    glBindVertexArray(VAO);
-
     // copy vertex data into buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    //GL_STREAM_DRAW: the data is set only once and used by the GPU at most a few times.
-    //GL_STATIC_DRAW: the data is set only once and used many times.
-    //GL_DYNAMIC_DRAW: the data is changed a lot and used many times.
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW);
 
-    // then set our vertex attributes pointers
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
+    glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+    //glDrawElements(GL_TRIANGLES, 2, GL_UNSIGNED_INT, 0);
+    //glDrawElements(GL_TRIANGLES, triangleVertexIndices.size(), GL_UNSIGNED_INT, 0);
 
     SDL_GL_SwapWindow(_window);
     return SUCCESS;

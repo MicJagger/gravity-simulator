@@ -7,6 +7,7 @@
 #include "external/include_sdl.hpp"
 
 #include "math.hpp"
+#include "universe.hpp"
 
 class Window {
     SDL_Window* _window;
@@ -15,6 +16,10 @@ class Window {
 
     int _horRes;
     int _vertRes;
+
+    // openGL objects
+    unsigned int VBO;
+    unsigned int VAO;
 public:
     Math _math;
 
@@ -30,7 +35,7 @@ public:
     std::vector<unsigned int> PollEvent();
 
     // draw current frame
-    int DrawFrame();
+    int DrawFrame(Universe* universe);
 };
 
 #endif

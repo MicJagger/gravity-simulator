@@ -1,6 +1,7 @@
 #include "universe.hpp"
 
 #include <cmath>
+#include <iostream>
 
 #include "body.hpp"
 #include "definitions.hpp"
@@ -10,10 +11,26 @@ inline double CalculateAcceleration(double mass, double distanceSquared) {
 }
 
 inline double CalculateDistanceSquared(Body obj1, Body obj2) {
-    double x = obj1._x - obj2._x;
-    double y = obj1._y - obj2._y;
-    double z = obj1._z - obj2._z;
-    return (x * x) + (y * y) + (z * z);
+    double dx = obj1._x - obj2._x;
+    double dy = obj1._y - obj2._y;
+    double dz = obj1._z - obj2._z;
+    return (dx * dx) + (dy * dy) + (dz * dz);
+}
+
+inline bool CheckCollision(Body obj1, Body obj2) {
+    double distance = sqrt(CalculateDistanceSquared(obj1, obj2));
+    if ((obj1._radius + obj2._radius) >= distance) {
+        return true;
+    }
+    return false;
+}
+
+inline bool CheckCollision(Body obj1, Body obj2, double distanceSquared) {
+    double distance = sqrt(distanceSquared);
+    if ((obj1._radius + obj2._radius) >= distance) {
+        return true;
+    }
+    return false;
 }
 
 
@@ -36,6 +53,8 @@ double Universe::GetTimeScaling() const {
 
 int Universe::AddBody(Body body) {
     _bodies.emplace(_highestId, body);
+    std::cout << "Created new body with ID " << _highestId << "\n";
+    _highestId++;
     return SUCCESS;
 }
 

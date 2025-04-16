@@ -28,6 +28,10 @@ int main(int argc, char* argv[]) {
     std::thread renderThread = std::thread(RenderThread, &renderIn, &renderOut, &universe, &window, &camera);
     int returnVal = 0;
     
+    Body first;
+    first._radius = 0.5;
+    universe.AddBody(first);
+
     bool running = true;
     while (running) {
         std::vector<unsigned int> event = window.PollEvent();
@@ -87,7 +91,7 @@ void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window, C
     }
     while (true) {
         window->_math.TickStart();
-        window->DrawFrame();
+        window->DrawFrame(universe);
         if (*sigIn <= SUCCESS) {
             break;
         }
