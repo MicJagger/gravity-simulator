@@ -20,8 +20,11 @@ public:
 
     Window();
 
-    // inits window and opengl
-    int Setup();
+    // run before setup
+    int OpenWindow();
+
+    // inits opengl
+    int SetupOpenGL();
 
     // poll for inputs / events
     std::vector<unsigned int> PollEvent();

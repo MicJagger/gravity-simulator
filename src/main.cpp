@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "body.hpp"
+#include "camera.hpp"
 #include "definitions.hpp"
 #include "math.hpp"
 #include "universe.hpp"
@@ -11,21 +12,20 @@
 // handles the physics of all the objects
 void PhysicsThread(int* sigIn, int* sigOut, Universe* universe);
 // handles drawing of the frames
-void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window);
+void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window, Camera* camera);
 
 // handles user inputs
 int main(int argc, char* argv[]) {
     int failVal = 0;
 
+    Camera camera;
     Universe universe;
     Window window;
-    if ((failVal = window.Setup()) < SUCCESS) {
-        return failVal;
-    }
+    window.OpenWindow();
     int physIn, physOut = 1;
     std::thread physicsThread = std::thread(PhysicsThread, &physIn, &physOut, &universe);
     int renderIn, renderOut = 1;
-    std::thread renderThread = std::thread(RenderThread, &renderIn, &renderOut, &universe, &window);
+    std::thread renderThread = std::thread(RenderThread, &renderIn, &renderOut, &universe, &window, &camera);
     int returnVal = 0;
     
     bool running = true;
@@ -39,6 +39,14 @@ int main(int argc, char* argv[]) {
                     renderIn = 0;
                     returnVal = 0;
                     running = false;
+                    break;
+                case SDL_KEYDOWN:
+                    break;
+                case SDL_KEYUP:
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    break;
+                case SDL_MOUSEBUTTONUP:
                     break;
             }
         }
@@ -71,9 +79,15 @@ void PhysicsThread(int* sigIn, int* sigOut, Universe* universe) {
     }
 }
 
-void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window) {
+void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window, Camera* camera) {
+    int failVal = 0;
+    if ((failVal = window->SetupOpenGL()) < SUCCESS) {
+        *sigOut = failVal;
+        return;
+    }
     while (true) {
         window->_math.TickStart();
+        window->DrawFrame();
         if (*sigIn <= SUCCESS) {
             break;
         }

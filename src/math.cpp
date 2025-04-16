@@ -65,7 +65,14 @@ Math::Math() {
     _targetTickSpeed = 60;
 }
 
+double Math::GetTickSpeed() {
+    return _targetTickSpeed;
+}
+
 int Math::SetTickSpeed(double tickSpeed) {
+    if (tickSpeed <= 0) {
+        return FAIL;
+    }
     _targetTickSpeed = tickSpeed;
     return SUCCESS;
 }

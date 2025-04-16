@@ -19,6 +19,7 @@ public:
 
     Math();
 
+    double GetTickSpeed();
     int SetTickSpeed(double tickSpeed);
 
     // tracks beginning of a frame

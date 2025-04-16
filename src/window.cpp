@@ -13,8 +13,20 @@ Window::Window() {
     _vertRes = 720;
 }
 
-int Window::Setup() {
+int Window::OpenWindow() {
+    // window creation
+    _window = SDL_CreateWindow("gravity-simulator", 
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
+        _horRes, _vertRes, 
+        SDL_WINDOW_OPENGL);
+    if (_window == NULL) {
+        std::cout << "failed to create window\n";
+        return FAIL;
+    }
+    return SUCCESS;
+}
 
+int Window::SetupOpenGL() {
     SDL_Init(SDL_INIT_EVERYTHING);
     // set some attributes
     SDL_GL_LoadLibrary(NULL);
@@ -27,15 +39,6 @@ int Window::Setup() {
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-    // window creation
-    _window = SDL_CreateWindow("gravity-simulator", 
-            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
-            _horRes, _vertRes, 
-            SDL_WINDOW_OPENGL);
-    if (_window == NULL) {
-        std::cout << "failed to create window\n";
-        return FAIL;
-    }
     if (!(_context = SDL_GL_CreateContext(_window))) {
         return FAIL;
     }
@@ -88,6 +91,7 @@ int Window::Setup() {
     if (!success) {
         glGetShaderInfoLog(vertexShader, sizeof(infoLog), NULL, infoLog);
         std::cout << "vertex compilation failed\n" << infoLog << std::endl;
+        return FAIL;
     }
 
     // setup and compile fragment shader
@@ -100,6 +104,7 @@ int Window::Setup() {
     if (!success) {
         glGetShaderInfoLog(fragmentShader, sizeof(infoLog), NULL, infoLog);
         std::cout << "fragment compilation failed\n" << infoLog << std::endl;
+        return FAIL;
     }
 
     // create shader program to merge two pieces
@@ -115,6 +120,7 @@ int Window::Setup() {
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
         std::cout << "shaderProgram compilation failed\n" << infoLog << std::endl;
+        return FAIL;
     }
 
     // use this program
@@ -136,7 +142,40 @@ std::vector<unsigned int> Window::PollEvent() {
 }
 
 int Window::DrawFrame() {
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // vertex data
+    float vertices[] = {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        0.0f,  0.5f, 0.0f
+    };
+
+    // vertex buffer object
+    GLuint VBO;
+    glGenBuffers(1, &VBO);
+
+    // vertex array object
+    GLuint VAO;
+    glGenVertexArrays(1, &VAO);
+
+    // set it to be for vertices
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    // bind Vertex Array Object
+    glBindVertexArray(VAO);
+
+    // copy vertex data into buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    //GL_STREAM_DRAW: the data is set only once and used by the GPU at most a few times.
+    //GL_STATIC_DRAW: the data is set only once and used many times.
+    //GL_DYNAMIC_DRAW: the data is changed a lot and used many times.
+
+    // then set our vertex attributes pointers
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 
     SDL_GL_SwapWindow(_window);
-    return FAIL;
+    return SUCCESS;
 }
