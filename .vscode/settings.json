@@ -68,6 +68,7 @@
         "xtree": "cpp",
         "condition_variable": "cpp",
         "functional": "cpp",
-        "mutex": "cpp"
+        "mutex": "cpp",
+        "random": "cpp"
     }
 }

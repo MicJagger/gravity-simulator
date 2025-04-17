@@ -1,9 +1,11 @@
 #include <iostream>
+#include <string>
 #include <thread>
 #include <vector>
 
 #include "body.hpp"
 #include "camera.hpp"
+#include "console.hpp"
 #include "definitions.hpp"
 #include "math.hpp"
 #include "universe.hpp"
@@ -26,6 +28,8 @@ int main(int argc, char* argv[]) {
     std::thread physicsThread = std::thread(PhysicsThread, &physIn, &physOut, &universe);
     int renderIn, renderOut = 1;
     std::thread renderThread = std::thread(RenderThread, &renderIn, &renderOut, &universe, &window, &camera);
+    int consoleIn, consoleOut = 1;
+    std::thread consoleThread = std::thread(ConsoleThread, &consoleIn, &consoleOut, &universe, &window, &camera);
     int returnVal = 0;
     
     Body first;
@@ -41,6 +45,7 @@ int main(int argc, char* argv[]) {
                 case SDL_QUIT:
                     physIn = 0;
                     renderIn = 0;
+                    consoleIn = 0;
                     returnVal = 0;
                     running = false;
                     break;
@@ -57,18 +62,27 @@ int main(int argc, char* argv[]) {
 
         if (physOut <= SUCCESS) {
             renderIn = physOut;
+            consoleIn = physOut;
             returnVal = physOut;
             break;
         }
         if (renderOut <= SUCCESS) {
             physIn = renderOut;
+            consoleIn = renderOut;
             returnVal = renderOut;
+            break;
+        }
+        if (consoleOut <= SUCCESS) {
+            physIn = consoleOut;
+            renderIn = consoleOut;
+            returnVal = consoleOut;
             break;
         }
         Math::sleep(0.010);
     }
     physicsThread.join();
     renderThread.join();
+    consoleThread.join();
 
     return returnVal;
 }
