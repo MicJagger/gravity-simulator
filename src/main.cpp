@@ -24,11 +24,11 @@ int main(int argc, char* argv[]) {
     Universe universe;
     Window window;
     window.OpenWindow();
-    int physIn, physOut = 1;
+    int physIn = 1, physOut = 1;
     std::thread physicsThread = std::thread(PhysicsThread, &physIn, &physOut, &universe);
-    int renderIn, renderOut = 1;
+    int renderIn = 1, renderOut = 1;
     std::thread renderThread = std::thread(RenderThread, &renderIn, &renderOut, &universe, &window, &camera);
-    int consoleIn, consoleOut = 1;
+    int consoleIn = 1, consoleOut = 1;
     std::thread consoleThread = std::thread(ConsoleThread, &consoleIn, &consoleOut, &universe, &window, &camera);
     int returnVal = 0;
     
@@ -48,6 +48,7 @@ int main(int argc, char* argv[]) {
                     consoleIn = 0;
                     returnVal = 0;
                     running = false;
+                    std::cout << "main called quit\n";
                     break;
                 case SDL_KEYDOWN:
                     break;
@@ -61,18 +62,21 @@ int main(int argc, char* argv[]) {
         }
 
         if (physOut <= SUCCESS) {
+            std::cout << "physics called quit\n";
             renderIn = physOut;
             consoleIn = physOut;
             returnVal = physOut;
             break;
         }
         if (renderOut <= SUCCESS) {
+            std::cout << "render called quit\n";
             physIn = renderOut;
             consoleIn = renderOut;
             returnVal = renderOut;
             break;
         }
         if (consoleOut <= SUCCESS) {
+            std::cout << "console called quit\n";
             physIn = consoleOut;
             renderIn = consoleOut;
             returnVal = consoleOut;
@@ -105,7 +109,7 @@ void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window, C
     }
     while (true) {
         window->_math.TickStart();
-        window->DrawFrame(universe);
+        window->DrawFrame(universe, camera);
         if (*sigIn <= SUCCESS) {
             break;
         }

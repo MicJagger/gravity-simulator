@@ -141,20 +141,25 @@ int Window::SetupOpenGL() {
 
     // setup other stuffs
 
-    glGenBuffers(1, &VBO);
     glGenVertexArrays(1, &VAO);
-    // set it to be for vertices
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+    
     // bind Vertex Array Object
     glBindVertexArray(VAO);
+    // set it to be for vertices
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    // bind element buffer
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
     // set vertex attributes pointers
-    glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
 
     // color
-    glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     return SUCCESS;
 }
@@ -167,29 +172,68 @@ std::vector<unsigned int> Window::PollEvent() {
     return events;
 }
 
-int Window::DrawFrame(Universe* universe) {
+#include <cmath>
+
+void DrawSphere(const Body* body, Camera* camera, std::vector<float>& vertexData) {
+
+}
+
+int Window::DrawFrame(Universe* universe, Camera* camera) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     const std::map<long long, Body>* bodies = universe->GetBodies();
-
-    for (auto iter = bodies->begin(); iter != bodies->end(); iter++) {
-
-    }
-
-    // test vertex data
-    float vertices[] = {
+    std::vector<float> vertexData = {
         -0.75f, -0.75f, 0.0f, 1.0f, 0.0f, 0.0f,
         0.75f, -0.75f, 0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f
+        0.0f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.7f,  0.75f, 0.0f, 0.5f, 0.0f, 0.0f,
+        0.75f,  0.85f, 0.0f, 0.0f, 0.5f, 0.0f,
+        0.9f,  0.95f, 0.0f, 0.0f, 0.0f, 0.5f
+    };
+    /*std::vector<unsigned int> elementData = {
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+    };*/
+    std::vector<unsigned int> elementData = {
+        0, 1,
+        1, 2,
+        2, 0,
+        3, 4,
+        4, 5,
+        5, 3
     };
 
+    for (auto iter = bodies->begin(); iter != bodies->end(); iter++) {
+        //DrawSphere(&iter->second, camera, vertexData);
+    }
+
     // copy vertex data into buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(float), vertexData.data(), GL_STREAM_DRAW);
+    // copy element data buffer
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementData.size() * sizeof(unsigned int), elementData.data(), GL_STREAM_DRAW);
 
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    //glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawElements(GL_TRIANGLES, elementData.size() * sizeof(unsigned int), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_LINES, elementData.size() * sizeof(unsigned int), GL_UNSIGNED_INT, 0);
 
     SDL_GL_SwapWindow(_window);
     return SUCCESS;
 }
+
+    /* test vertex data
+    float vertices[] = {
+        -0.75f, -0.75f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.75f, -0.75f, 0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.7f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.75f,  0.85f, 0.0f, 0.0f, 0.0f, 1.0f,
+        0.9f,  0.95f, 0.0f, 0.0f, 0.0f, 1.0f
+    };
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW);*/

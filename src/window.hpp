@@ -6,6 +6,7 @@
 
 #include "external/include_sdl.hpp"
 
+#include "camera.hpp"
 #include "math.hpp"
 #include "universe.hpp"
 
@@ -20,6 +21,7 @@ class Window {
     // openGL objects
     unsigned int VBO;
     unsigned int VAO;
+    unsigned int EBO;
 public:
     Math _math;
 
@@ -35,7 +37,7 @@ public:
     std::vector<unsigned int> PollEvent();
 
     // draw current frame
-    int DrawFrame(Universe* universe);
+    int DrawFrame(Universe* universe, Camera* camera);
 };
 
 #endif
