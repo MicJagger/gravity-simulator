@@ -66,7 +66,7 @@ void ConsoleThread(int* sigIn, int* sigOut, Universe* universe, Window* window, 
 
 #ifdef _WIN32
 // handles console I/O
-void ConsoleThread(int* sigIn, int* sigOut, Universe* universe, Window* window, Camera* camera) {
+void ConsoleThread(int* sigIn, int* sigOut, Universe* universe, Window* window) {
     std::string input;
     std::vector<std::string> args;
     while (true) {

@@ -4,43 +4,47 @@
 #include <vector>
 
 #include "body.hpp"
-#include "camera.hpp"
 #include "console.hpp"
 #include "definitions.hpp"
 #include "math.hpp"
 #include "universe.hpp"
 #include "window.hpp"
 
+//int HandleKeypress();
+//int HandleKeyunpress();
+
 // handles the physics of all the objects
 void PhysicsThread(int* sigIn, int* sigOut, Universe* universe);
 // handles drawing of the frames
-void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window, Camera* camera);
+void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window);
 
 // handles user inputs
 int main(int argc, char* argv[]) {
     int failVal = 0;
 
-    Camera camera;
     Universe universe;
     Window window;
     window.OpenWindow();
     int physIn = 1, physOut = 1;
     std::thread physicsThread = std::thread(PhysicsThread, &physIn, &physOut, &universe);
     int renderIn = 1, renderOut = 1;
-    std::thread renderThread = std::thread(RenderThread, &renderIn, &renderOut, &universe, &window, &camera);
+    std::thread renderThread = std::thread(RenderThread, &renderIn, &renderOut, &universe, &window);
     int consoleIn = 1, consoleOut = 1;
-    std::thread consoleThread = std::thread(ConsoleThread, &consoleIn, &consoleOut, &universe, &window, &camera);
+    std::thread consoleThread = std::thread(ConsoleThread, &consoleIn, &consoleOut, &universe, &window);
     int returnVal = 0;
     
     Body first;
     first._radius = 0.5;
     universe.AddBody(first);
 
+    unsigned int key;
+    bool keys[322];
+    std::fill_n(keys, 322, false);
     bool running = true;
     while (running) {
-        std::vector<unsigned int> event = window.PollEvent();
+        std::vector<SDL_Event> event = window.PollEvent();
         for (int i = 0; i < event.size(); i++) {
-            switch (event[i]) {
+            switch (event[i].type) {
                 // Press Window X
                 case SDL_QUIT:
                     physIn = 0;
@@ -51,8 +55,26 @@ int main(int argc, char* argv[]) {
                     std::cout << "main called quit\n";
                     break;
                 case SDL_KEYDOWN:
+                    key = event[i].key.keysym.sym;
+                    keys[key] = true;
+                    if (key == 'w') {
+                        window.ChangeCameraAngle(0, 5);
+                    }
+                    else if (key == 'a') {
+                        window.ChangeCameraAngle(5, 0);
+                    }
+                    else if (key == 'd') {
+                        window.ChangeCameraAngle(-5, 0);
+                    }
+                    else if (key == 's') {
+                        window.ChangeCameraAngle(0, -5);
+                    }
+                    //HandleKeypress(key, keys, universe, window, camera);
                     break;
                 case SDL_KEYUP:
+                    key = event[i].key.keysym.sym;
+                    keys[key] = false;
+                    //HandleKeyunpress(key, keys, universe, window, camera);
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     break;
@@ -91,6 +113,10 @@ int main(int argc, char* argv[]) {
     return returnVal;
 }
 
+//int HandleKeypress() {}
+
+//int HandleKeyunpress() {}
+
 void PhysicsThread(int* sigIn, int* sigOut, Universe* universe) {
     while (true) {
         universe->_math.TickStart();
@@ -101,7 +127,7 @@ void PhysicsThread(int* sigIn, int* sigOut, Universe* universe) {
     }
 }
 
-void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window, Camera* camera) {
+void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window) {
     int failVal = 0;
     if ((failVal = window->SetupOpenGL()) < SUCCESS) {
         *sigOut = failVal;
@@ -109,7 +135,7 @@ void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window, C
     }
     while (true) {
         window->_math.TickStart();
-        window->DrawFrame(universe, camera);
+        window->DrawFrame(universe);
         if (*sigIn <= SUCCESS) {
             break;
         }

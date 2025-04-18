@@ -4,6 +4,9 @@
 #include <map>
 #include <vector>
 
+#include "../glm/glm/glm.hpp"
+#include "../glm/glm/gtc/matrix_transform.hpp"
+#include "../glm/glm/gtc/type_ptr.hpp"
 #include "external/include_glad.hpp"
 #include "external/include_sdl.hpp"
 
@@ -53,8 +56,8 @@ int Window::SetupOpenGL() {
     // SDL_GL_SetSwapInterval(1);
 
     // Disable depth test and face culling.
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_CULL_FACE);
 
     // tell opengl window size
     //SDL_GetWindowSize(_window, &w, &h);
@@ -66,10 +69,12 @@ int Window::SetupOpenGL() {
         layout (location = 0) in vec3 aPos;
         layout (location = 1) in vec3 aColor;
 
+        uniform mat4 modelMatrix;
+
         out vec3 vertexColor;
 
         void main() {
-            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+            gl_Position = modelMatrix * vec4(aPos.x, aPos.y, aPos.z, 1.0);
             vertexColor = aColor;
         }
     )";
@@ -117,7 +122,6 @@ int Window::SetupOpenGL() {
     }
 
     // create shader program to merge two pieces
-    unsigned int shaderProgram;
     shaderProgram = glCreateProgram();
 
     // creates and links
@@ -164,12 +168,56 @@ int Window::SetupOpenGL() {
     return SUCCESS;
 }
 
-std::vector<unsigned int> Window::PollEvent() {
-    std::vector<unsigned int> events;
+const Camera *Window::GetCamera() {
+    return &_camera;
+}
+
+std::vector<SDL_Event> Window::PollEvent() {
+    std::vector<SDL_Event> events;
     while (SDL_PollEvent(&_windowEvent)) {
-        events.push_back(_windowEvent.type);
+        events.push_back(_windowEvent);
     }
     return events;
+}
+
+int Window::SetCameraPosition(double x, double y, double z) {
+    _camera._x = x;
+    _camera._y = y;
+    _camera._z = z;
+    return SUCCESS;
+}
+
+int Window::SetCameraVelocity(double xVel, double yVel, double zVel) {
+    _camera._x = xVel;
+    _camera._y = yVel;
+    _camera._z = zVel;
+    return SUCCESS;
+}
+
+int Window::SetCameraAngle(double theta, double phi) {
+    _camera._theta = theta;
+    _camera._phi = phi;
+    return SUCCESS;
+}
+
+int Window::ChangeCameraPosition(double x, double y, double z) {
+    _camera._x += x;
+    _camera._y += y;
+    _camera._z += z;
+    return SUCCESS;
+}
+
+int Window::ChangeCameraVelocity(double xVel, double yVel, double zVel) {
+    _camera._x += xVel;
+    _camera._y += yVel;
+    _camera._z += zVel;
+    return SUCCESS;
+}
+
+int Window::ChangeCameraAngle(double theta, double phi) {
+    _camera._theta += theta;
+    _camera._phi += phi;
+    return SUCCESS;
 }
 
 #include <cmath>
@@ -178,39 +226,39 @@ void DrawSphere(const Body* body, Camera* camera, std::vector<float>& vertexData
 
 }
 
-int Window::DrawFrame(Universe* universe, Camera* camera) {
+int Window::DrawFrame(Universe* universe) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     const std::map<long long, Body>* bodies = universe->GetBodies();
     std::vector<float> vertexData = {
-        -0.75f, -0.75f, 0.0f, 1.0f, 0.0f, 0.0f,
+        -0.75f, -0.75f, 0.2f, 1.0f, 0.0f, 0.0f,
         0.75f, -0.75f, 0.0f, 0.0f, 1.0f, 0.0f,
         0.0f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f,
-        0.7f,  0.75f, 0.0f, 0.5f, 0.0f, 0.0f,
-        0.75f,  0.85f, 0.0f, 0.0f, 0.5f, 0.0f,
-        0.9f,  0.95f, 0.0f, 0.0f, 0.0f, 0.5f
+        0.5f,  0.0f, 0.5f, 0.5f, 0.0f, 0.0f,
+        0.75f,  0.9f, 0.5f, 0.0f, 0.5f, 0.0f,
+        0.5f,  0.95f, 0.5f, 0.0f, 0.0f, 0.5f
     };
-    /*std::vector<unsigned int> elementData = {
+    std::vector<unsigned int> elementData = {
         0,
         1,
         2,
         3,
         4,
         5
-    };*/
-    std::vector<unsigned int> elementData = {
-        0, 1,
-        1, 2,
-        2, 0,
-        3, 4,
-        4, 5,
-        5, 3
     };
 
     for (auto iter = bodies->begin(); iter != bodies->end(); iter++) {
         //DrawSphere(&iter->second, camera, vertexData);
     }
+
+    auto modelMatrix = glm::mat4(1.0f);
+
+    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._theta), glm::vec3(0.0f, 0.0f, 1.0f));
+    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._phi), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    auto modelMatrixLocation = glGetUniformLocation(shaderProgram, "modelMatrix");
+    glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
     // copy vertex data into buffer
     glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(float), vertexData.data(), GL_STREAM_DRAW);
@@ -219,21 +267,32 @@ int Window::DrawFrame(Universe* universe, Camera* camera) {
 
     glBindVertexArray(VAO);
 
-    //glDrawArrays(GL_TRIANGLES, 0, 6);
     glDrawElements(GL_TRIANGLES, elementData.size() * sizeof(unsigned int), GL_UNSIGNED_INT, 0);
-    glDrawElements(GL_LINES, elementData.size() * sizeof(unsigned int), GL_UNSIGNED_INT, 0);
 
     SDL_GL_SwapWindow(_window);
     return SUCCESS;
 }
 
-    /* test vertex data
-    float vertices[] = {
-        -0.75f, -0.75f, 0.0f, 1.0f, 0.0f, 0.0f,
-        0.75f, -0.75f, 0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f,
-        0.7f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f,
-        0.75f,  0.85f, 0.0f, 0.0f, 0.0f, 1.0f,
-        0.9f,  0.95f, 0.0f, 0.0f, 0.0f, 1.0f
-    };
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW);*/
+/* 
+// test vertex data
+float vertices[] = {
+    -0.75f, -0.75f, 0.0f, 1.0f, 0.0f, 0.0f,
+    0.75f, -0.75f, 0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f,
+    0.7f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f,
+    0.75f,  0.85f, 0.0f, 0.0f, 0.0f, 1.0f,
+    0.9f,  0.95f, 0.0f, 0.0f, 0.0f, 1.0f
+};
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW);
+glDrawArrays(GL_TRIANGLES, 0, 6);
+*/
+
+/*std::vector<unsigned int> elementData = {
+    0, 1,
+    1, 2,
+    2, 0,
+    3, 4,
+    4, 5,
+    5, 3
+};//*/
+//glDrawElements(GL_LINES, elementData.size() * sizeof(unsigned int), GL_UNSIGNED_INT, 0);
