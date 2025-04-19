@@ -1,5 +1,6 @@
 #include "window.hpp"
 
+#include <cmath>
 #include <iostream>
 #include <map>
 #include <vector>
@@ -14,7 +15,7 @@
 #include "math.hpp"
 
 Window::Window() {
-    _horRes = 1280;
+    _horRes = 720;
     _vertRes = 720;
 }
 
@@ -194,9 +195,10 @@ int Window::SetCameraVelocity(double xVel, double yVel, double zVel) {
     return SUCCESS;
 }
 
-int Window::SetCameraAngle(double theta, double phi) {
-    _camera._theta = theta;
-    _camera._phi = phi;
+int Window::SetCameraAngle(float theta, float phi, float psi) {
+    _camera._theta = fmod(theta, 360.0f);
+    _camera._phi = fmod(phi, 360.0f);
+    _camera._psi = fmod(psi, 360.0f);
     return SUCCESS;
 }
 
@@ -214,13 +216,12 @@ int Window::ChangeCameraVelocity(double xVel, double yVel, double zVel) {
     return SUCCESS;
 }
 
-int Window::ChangeCameraAngle(double theta, double phi) {
-    _camera._theta += theta;
-    _camera._phi += phi;
+int Window::ChangeCameraAngle(float theta, float phi, float psi) {
+    _camera._theta = fmod(_camera._theta + theta, 360.0f);
+    _camera._phi = fmod(_camera._phi + phi, 360.0f);
+    _camera._psi = fmod(_camera._psi + psi, 360.0f);
     return SUCCESS;
 }
-
-#include <cmath>
 
 void DrawSphere(const Body* body, Camera* camera, std::vector<float>& vertexData) {
 
@@ -232,20 +233,56 @@ int Window::DrawFrame(Universe* universe) {
 
     const std::map<long long, Body>* bodies = universe->GetBodies();
     std::vector<float> vertexData = {
-        -0.75f, -0.75f, 0.2f, 1.0f, 0.0f, 0.0f,
-        0.75f, -0.75f, 0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f,
-        0.5f,  0.0f, 0.5f, 0.5f, 0.0f, 0.0f,
-        0.75f,  0.9f, 0.5f, 0.0f, 0.5f, 0.0f,
-        0.5f,  0.95f, 0.5f, 0.0f, 0.0f, 0.5f
+        // front
+        -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+        // left
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+        // right
+        0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+        0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+        // back
+        -0.5f, -0.5f, 0.5f, 0.8f, 0.8f, 0.8f,
+        0.5f, -0.5f, 0.5f, 0.8f, 0.8f, 0.8f,
+        0.5f, 0.5f, 0.5f, 0.8f, 0.8f, 0.8f,
+        -0.5f, 0.5f, 0.5f, 0.8f, 0.8f, 0.8f,
+        // top
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        // bottom
+        -0.5f, -0.5f, 0.5f, 0.2f, 0.2f, 0.2f,
+        0.5f, -0.5f, 0.5f, 0.2f, 0.2f, 0.2f,
+        0.5f, -0.5f, -0.5f, 0.2f, 0.2f, 0.2f,
+        -0.5f, -0.5f, -0.5f, 0.2f, 0.2f, 0.2f
     };
     std::vector<unsigned int> elementData = {
-        0,
-        1,
-        2,
-        3,
-        4,
-        5
+        // front
+        0, 1, 2,
+        2, 3, 0,
+        // left
+        4, 5, 6,
+        6, 7, 4,
+        // right
+        8, 9, 10,
+        10, 11, 8,
+        // back
+        14, 13, 12,
+        12, 15, 14,
+        // top
+        16, 17, 18,
+        18, 19, 16,
+        // bottom
+        20, 21, 22,
+        22, 23, 20
     };
 
     for (auto iter = bodies->begin(); iter != bodies->end(); iter++) {
@@ -254,8 +291,9 @@ int Window::DrawFrame(Universe* universe) {
 
     auto modelMatrix = glm::mat4(1.0f);
 
-    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._theta), glm::vec3(0.0f, 0.0f, 1.0f));
-    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._phi), glm::vec3(1.0f, 0.0f, 0.0f));
+    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._psi), glm::vec3(0.0f, 0.0f, 1.0f)); // q / e
+    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._phi), glm::vec3(1.0f, 0.0f, 0.0f)); // w / s
+    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._theta), glm::vec3(0.0f, 1.0f, 0.0f)); // a / d
 
     auto modelMatrixLocation = glGetUniformLocation(shaderProgram, "modelMatrix");
     glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
@@ -272,27 +310,3 @@ int Window::DrawFrame(Universe* universe) {
     SDL_GL_SwapWindow(_window);
     return SUCCESS;
 }
-
-/* 
-// test vertex data
-float vertices[] = {
-    -0.75f, -0.75f, 0.0f, 1.0f, 0.0f, 0.0f,
-    0.75f, -0.75f, 0.0f, 0.0f, 1.0f, 0.0f,
-    0.0f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f,
-    0.7f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f,
-    0.75f,  0.85f, 0.0f, 0.0f, 0.0f, 1.0f,
-    0.9f,  0.95f, 0.0f, 0.0f, 0.0f, 1.0f
-};
-glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STREAM_DRAW);
-glDrawArrays(GL_TRIANGLES, 0, 6);
-*/
-
-/*std::vector<unsigned int> elementData = {
-    0, 1,
-    1, 2,
-    2, 0,
-    3, 4,
-    4, 5,
-    5, 3
-};//*/
-//glDrawElements(GL_LINES, elementData.size() * sizeof(unsigned int), GL_UNSIGNED_INT, 0);

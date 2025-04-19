@@ -15,10 +15,12 @@ struct Camera {
     double _yVel;
     // m/s
     double _zVel;
-    // 
-    double _theta;
-    // 
-    double _phi;
+    // degrees - horizontal
+    float _theta;
+    // degrees - vertical
+    float _phi;
+    // degrees - spin
+    float _psi;
     // m / s
     double _moveSpeed;
 

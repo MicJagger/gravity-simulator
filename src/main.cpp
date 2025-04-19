@@ -58,16 +58,22 @@ int main(int argc, char* argv[]) {
                     key = event[i].key.keysym.sym;
                     keys[key] = true;
                     if (key == 'w') {
-                        window.ChangeCameraAngle(0, 5);
+                        window.ChangeCameraAngle(0.0f, 5.0f, 0.0f);
                     }
                     else if (key == 'a') {
-                        window.ChangeCameraAngle(5, 0);
+                        window.ChangeCameraAngle(5.0f, 0.0f, 0.0f);
                     }
                     else if (key == 'd') {
-                        window.ChangeCameraAngle(-5, 0);
+                        window.ChangeCameraAngle(-5.0f, 0.0f, 0.0f);
                     }
                     else if (key == 's') {
-                        window.ChangeCameraAngle(0, -5);
+                        window.ChangeCameraAngle(0.0f, -5.0f, 0.0f);
+                    }
+                    else if (key == 'q') {
+                        window.ChangeCameraAngle(0.0f, 0.0f, 5.0f); 
+                    }
+                    else if (key == 'e') {
+                        window.ChangeCameraAngle(0.0f, 0.0f, -5.0f);
                     }
                     //HandleKeypress(key, keys, universe, window, camera);
                     break;

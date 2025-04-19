@@ -51,11 +51,11 @@ public:
 
     int SetCameraPosition(double x, double y, double z);
     int SetCameraVelocity(double xVel, double yVel, double zVel);
-    int SetCameraAngle(double theta, double phi);
+    int SetCameraAngle(float theta, float phi, float psi);
 
     int ChangeCameraPosition(double x, double y, double z);
     int ChangeCameraVelocity(double xVel, double yVel, double zVel);
-    int ChangeCameraAngle(double theta, double phi);
+    int ChangeCameraAngle(float theta, float phi, float psi);
 
     // draw current frame
     int DrawFrame(Universe* universe);
