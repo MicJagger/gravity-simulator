@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
                     key = event[i].key.keysym.sym;
                     keys[key] = true;
                     if (key == 'w') {
-                        window.ChangeCameraAngle(0.0f, 5.0f, 0.0f);
+                        window.ChangeCameraAngle(0.0f, -5.0f, 0.0f);
                     }
                     else if (key == 'a') {
                         window.ChangeCameraAngle(5.0f, 0.0f, 0.0f);
@@ -67,10 +67,10 @@ int main(int argc, char* argv[]) {
                         window.ChangeCameraAngle(-5.0f, 0.0f, 0.0f);
                     }
                     else if (key == 's') {
-                        window.ChangeCameraAngle(0.0f, -5.0f, 0.0f);
+                        window.ChangeCameraAngle(0.0f, 5.0f, 0.0f);
                     }
                     else if (key == 'q') {
-                        window.ChangeCameraAngle(0.0f, 0.0f, 5.0f); 
+                        window.ChangeCameraAngle(0.0f, 0.0f, 5.0f);
                     }
                     else if (key == 'e') {
                         window.ChangeCameraAngle(0.0f, 0.0f, -5.0f);

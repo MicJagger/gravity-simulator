@@ -19,6 +19,7 @@ class Window {
 
     int _horRes;
     int _vertRes;
+    float _fov;
 
     // openGL objects
     // im not putting underscores here because ¯\_(ツ)_/¯

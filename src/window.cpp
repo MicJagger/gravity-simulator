@@ -5,9 +5,9 @@
 #include <map>
 #include <vector>
 
-#include "../glm/glm/glm.hpp"
-#include "../glm/glm/gtc/matrix_transform.hpp"
-#include "../glm/glm/gtc/type_ptr.hpp"
+#include "external/glm/glm/glm.hpp"
+#include "external/glm/glm/gtc/matrix_transform.hpp"
+#include "external/glm/glm/gtc/type_ptr.hpp"
 #include "external/include_glad.hpp"
 #include "external/include_sdl.hpp"
 
@@ -17,6 +17,7 @@
 Window::Window() {
     _horRes = 720;
     _vertRes = 720;
+    _fov = 90;
 }
 
 int Window::OpenWindow() {
@@ -67,16 +68,21 @@ int Window::SetupOpenGL() {
     constexpr auto vertexShaderSource = R"(
         #version 330 core
 
-        layout (location = 0) in vec3 aPos;
-        layout (location = 1) in vec3 aColor;
+        layout (location = 0) in vec3 vPos;
+        layout (location = 1) in vec3 vColor;
+        layout (location = 2) in vec2 vTexCoords;
 
         uniform mat4 modelMatrix;
+        uniform mat4 viewMatrix;
+        uniform mat4 projectionMatrix;
 
         out vec3 vertexColor;
+        out vec2 vertexTexCoords;
 
         void main() {
-            gl_Position = modelMatrix * vec4(aPos.x, aPos.y, aPos.z, 1.0);
-            vertexColor = aColor;
+            gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vPos.x, vPos.y, vPos.z, 1.0);
+            vertexColor = vColor;
+            vertexTexCoords = vec2(vTexCoords.x, vTexCoords.y * -1.0f);
         }
     )";
     
@@ -290,13 +296,26 @@ int Window::DrawFrame(Universe* universe) {
     }
 
     auto modelMatrix = glm::mat4(1.0f);
-
-    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._psi), glm::vec3(0.0f, 0.0f, 1.0f)); // q / e
     modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._phi), glm::vec3(1.0f, 0.0f, 0.0f)); // w / s
-    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._theta), glm::vec3(0.0f, 1.0f, 0.0f)); // a / d
-
+    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._psi), glm::vec3(0.0f, 1.0f, 0.0f)); // q / e
+    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._theta), glm::vec3(0.0f, 0.0f, 1.0f)); // a / d
     auto modelMatrixLocation = glGetUniformLocation(shaderProgram, "modelMatrix");
     glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+    float nearPlane = 0.1f;
+    float farPlane = 1000.0f;
+    glm::vec3 camPosition(0.0f, 0.0f, 1.5f);
+    glm::vec3 camFront(0.0f, 0.0f, -1.0f);
+
+    glm::mat4 viewMatrix(1.0f);
+    viewMatrix = glm::lookAt(camPosition, camPosition + camFront, glm::vec3(0.0f, 1.0f, 0.0f));
+    auto viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
+    glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+    glm::mat4 projectionMatrix(1.0f);
+    projectionMatrix = glm::perspective(glm::radians(_fov), 1.0f, nearPlane, farPlane);
+    auto projectionMatrixLocation = glGetUniformLocation(shaderProgram, "projectionMatrix");
+    glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
     // copy vertex data into buffer
     glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(float), vertexData.data(), GL_STREAM_DRAW);
