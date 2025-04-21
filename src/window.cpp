@@ -15,13 +15,12 @@
 #include "body.hpp"
 #include "math.hpp"
 
-inline glm::vec3 SphericalToVector(float theta, float phi, float psi) {
+inline glm::vec3 AngleToVector(float theta, float phi, float psi) {
     theta = glm::radians(theta);
     phi = glm::radians(phi);
     float x = cos(theta) * sin(phi);
-    float y = cos(phi);
-    float z = -sin(theta) * sin(phi);
-    std::cout << "(" << x << ", " << y << ", " << z << "): ";
+    float y = sin(theta) * sin(phi);
+    float z = cos(phi);
     return glm::vec3(x, y, z);
 }
 
@@ -83,7 +82,6 @@ int Window::SetupOpenGL() {
         layout (location = 1) in vec3 vColor;
         layout (location = 2) in vec2 vTexCoords;
 
-        uniform mat4 modelMatrix;
         uniform mat4 viewMatrix;
         uniform mat4 projectionMatrix;
 
@@ -91,7 +89,7 @@ int Window::SetupOpenGL() {
         out vec2 vertexTexCoords;
 
         void main() {
-            gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vPos.x, vPos.y, vPos.z, 1.0);
+            gl_Position = projectionMatrix * viewMatrix * vec4(vPos.x, vPos.y, vPos.z, 1.0);
             vertexColor = vColor;
             vertexTexCoords = vec2(vTexCoords.x, vTexCoords.y * -1.0f);
         }
@@ -235,19 +233,27 @@ int Window::ChangeCameraVelocity(double xVel, double yVel, double zVel) {
 
 int Window::ChangeCameraAngle(float theta, float phi, float psi) {
     _camera._theta = fmod(_camera._theta + theta, 360.0f);
-    _camera._phi = fmod(_camera._phi + phi, 360.0f);
+    float newPhi = _camera._phi + phi;
+    if (newPhi > 180) {
+        _camera._phi = 179.999f;
+    }
+    else if (newPhi < 0) {
+        _camera._phi = 0.001f;
+    }
+    else {
+        _camera._phi = newPhi;
+    }
     _camera._psi = fmod(_camera._psi + psi, 360.0f);
     return SUCCESS;
 }
 
 int Window::MoveCamera(double forward, double right, double up) {
     float theta = glm::radians(_camera._theta);
-    float phi = glm::radians(_camera._phi);
     float x = cos(theta);
-    float z = -sin(theta);
-    _camera._x += (forward * x) - (right * z);
-    _camera._z += (forward * z) + (right * x);
-    _camera._y += up;
+    float y = sin(theta);
+    _camera._x += (forward * x) + (right * y);
+    _camera._y += (forward * y) - (right * x);
+    _camera._z += up;
     return SUCCESS;
 }
 
@@ -262,85 +268,51 @@ int Window::DrawFrame(Universe* universe) {
     const std::map<long long, Body>* bodies = universe->GetBodies();
     auto body = bodies->at(0);
     std::vector<float> vertexData = {
-        /*
-        // front
-        -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-        -0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-        // left
-        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+        // forward
+        -2.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+        2.0f, 5.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+        0.0f, 5.0f, 5.0f, 1.0f, 1.0f, 1.0f,
+
         // right
-        0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
-        0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
-        0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+        5.0f, -2.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        5.0f, 2.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        5.0f, 0.0f, -5.0f, 1.0f, 1.0f, 1.0f,
+
         // back
-        -0.5f, -0.5f, 0.5f, 0.8f, 0.8f, 0.8f,
-        0.5f, -0.5f, 0.5f, 0.8f, 0.8f, 0.8f,
-        0.5f, 0.5f, 0.5f, 0.8f, 0.8f, 0.8f,
-        -0.5f, 0.5f, 0.5f, 0.8f, 0.8f, 0.8f,
-        // top
-        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-        // bottom
-        -0.5f, -0.5f, 0.5f, 0.2f, 0.2f, 0.2f,
-        0.5f, -0.5f, 0.5f, 0.2f, 0.2f, 0.2f,
-        0.5f, -0.5f, -0.5f, 0.2f, 0.2f, 0.2f,
-        -0.5f, -0.5f, -0.5f, 0.2f, 0.2f, 0.2f
-        */
-       0.0f, 0.0f, -5.0f, 1.0f, 1.0f, 1.0f,
-       5.0f, 0.0f, -5.0f, 1.0f, 0.0f, 0.0f,
-       0.0f, 5.0f, -5.0f, 0.0f, 0.0f, 1.0f
+        -2.0f, -5.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+        2.0f, -5.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+        0.0f, -5.0f, 5.0f, 0.0f, 0.0f, 1.0f,
+
+        // left
+        -5.0f, -2.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+        -5.0f, 2.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+        -5.0f, 0.0f, -5.0f, 1.0f, 0.0f, 0.0f
     };
     std::vector<unsigned int> elementData = {
-        /*
-        // front
-        0, 1, 2,
-        2, 3, 0,
-        // left
-        4, 5, 6,
-        6, 7, 4,
-        // right
-        8, 9, 10,
-        10, 11, 8,
-        // back
-        14, 13, 12,
-        12, 15, 14,
         // top
-        16, 17, 18,
-        18, 19, 16,
-        // bottom
-        20, 21, 22,
-        22, 23, 20
-        */
-       0, 1, 2
+        0, 1, 2,
+
+        // right
+        3, 4, 5,
+
+        // back
+        6, 7, 8,
+
+        // left
+        9, 10, 11
     };
 
     for (auto iter = bodies->begin(); iter != bodies->end(); iter++) {
         //DrawSphere(&iter->second, camera, vertexData);
     }
 
-    auto modelMatrix = glm::mat4(1.0f);
-    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._phi), glm::vec3(1.0f, 0.0f, 0.0f)); // w / s
-    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._psi), glm::vec3(0.0f, 1.0f, 0.0f)); // q / e
-    modelMatrix = glm::rotate(modelMatrix, glm::radians((float)_camera._theta), glm::vec3(0.0f, 0.0f, 1.0f)); // a / d
-    auto modelMatrixLocation = glGetUniformLocation(shaderProgram, "modelMatrix");
-    glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-
     float nearPlane = 0.1f;
-    float farPlane = 500.0f;
+    float farPlane = 1000.0f;
     glm::vec3 camPosition(_camera._x, _camera._y, _camera._z);
-    glm::vec3 camFront(SphericalToVector(_camera._theta, _camera._phi, _camera._psi));
-    std::cout << "(" << _camera._x << ", " << _camera._y << ", " << _camera._z << ")\n"; 
+    glm::vec3 camFront(AngleToVector(_camera._theta, _camera._phi, _camera._psi));
 
     glm::mat4 viewMatrix(1.0f);
-    viewMatrix = glm::lookAt(camPosition, camPosition + camFront, glm::vec3(0.0f, 1.0f, 0.0f));
+    viewMatrix = glm::lookAt(camPosition, camPosition + camFront, glm::vec3(0.0f, 0.0f, 1.0f));
     auto viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
     glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 

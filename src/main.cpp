@@ -75,12 +75,6 @@ int main(int argc, char* argv[]) {
                     else if (key == SDLK_LCTRL) {
                         window.MoveCamera(0.0, 0.0, -1.0);
                     }
-                    /*else if (key == 'q') {
-                        window.ChangeCameraAngle(0.0f, 0.0f, 5.0f);
-                    }
-                    else if (key == 'e') {
-                        window.ChangeCameraAngle(0.0f, 0.0f, -5.0f);
-                    }*/
                     else if (key == SDLK_UP) {
                         window.ChangeCameraAngle(0.0f, -5.0f, 0.0f);
                     }
