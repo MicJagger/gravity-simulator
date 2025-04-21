@@ -27,7 +27,7 @@ struct Camera {
     Camera() {
         _x, _y, _z = 0;
         _xVel, _yVel, _zVel = 0;
-        _theta = 0;
+        _theta = 90;
         _phi = 90;
         _psi = 0;
         _moveSpeed = 1;

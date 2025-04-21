@@ -58,6 +58,8 @@ public:
     int ChangeCameraVelocity(double xVel, double yVel, double zVel);
     int ChangeCameraAngle(float theta, float phi, float psi);
 
+    int MoveCamera(double forward, double right, double up);
+
     // draw current frame
     int DrawFrame(Universe* universe);
 };

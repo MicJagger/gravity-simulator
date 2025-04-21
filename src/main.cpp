@@ -38,8 +38,8 @@ int main(int argc, char* argv[]) {
     universe.AddBody(first);
 
     unsigned int key;
-    bool keys[322];
-    std::fill_n(keys, 322, false);
+    //bool keys[322];
+    //std::fill_n(keys, 322, false);
     bool running = true;
     while (running) {
         std::vector<SDL_Event> event = window.PollEvent();
@@ -56,30 +56,48 @@ int main(int argc, char* argv[]) {
                     break;
                 case SDL_KEYDOWN:
                     key = event[i].key.keysym.sym;
-                    keys[key] = true;
+                    //keys[key] = true;
                     if (key == 'w') {
-                        window.ChangeCameraAngle(0.0f, -5.0f, 0.0f);
-                    }
-                    else if (key == 'a') {
-                        window.ChangeCameraAngle(5.0f, 0.0f, 0.0f);
-                    }
-                    else if (key == 'd') {
-                        window.ChangeCameraAngle(-5.0f, 0.0f, 0.0f);
+                        window.MoveCamera(1.0, 0.0, 0.0);
                     }
                     else if (key == 's') {
-                        window.ChangeCameraAngle(0.0f, 5.0f, 0.0f);
+                        window.MoveCamera(-1.0, 0.0, 0.0);
                     }
-                    else if (key == 'q') {
+                    else if (key == 'a') {
+                        window.MoveCamera(0.0, -1.0, 0.0);
+                    }
+                    else if (key == 'd') {
+                        window.MoveCamera(0.0, 1.0, 0.0);
+                    }
+                    else if (key == SDLK_SPACE) {
+                        window.MoveCamera(0.0, 0.0, 1.0);
+                    }
+                    else if (key == SDLK_LCTRL) {
+                        window.MoveCamera(0.0, 0.0, -1.0);
+                    }
+                    /*else if (key == 'q') {
                         window.ChangeCameraAngle(0.0f, 0.0f, 5.0f);
                     }
                     else if (key == 'e') {
                         window.ChangeCameraAngle(0.0f, 0.0f, -5.0f);
+                    }*/
+                    else if (key == SDLK_UP) {
+                        window.ChangeCameraAngle(0.0f, -5.0f, 0.0f);
+                    }
+                    else if (key == SDLK_DOWN) {
+                        window.ChangeCameraAngle(0.0f, 5.0f, 0.0f);
+                    }
+                    else if (key == SDLK_LEFT) {
+                        window.ChangeCameraAngle(5.0f, 0.0f, 0.0f);
+                    }
+                    else if (key == SDLK_RIGHT) {
+                        window.ChangeCameraAngle(-5.0f, 0.0f, 0.0f);
                     }
                     //HandleKeypress(key, keys, universe, window, camera);
                     break;
                 case SDL_KEYUP:
                     key = event[i].key.keysym.sym;
-                    keys[key] = false;
+                    //keys[key] = false;
                     //HandleKeyunpress(key, keys, universe, window, camera);
                     break;
                 case SDL_MOUSEBUTTONDOWN:

@@ -12,10 +12,21 @@
 #include "external/include_sdl.hpp"
 
 #include "definitions.hpp"
+#include "body.hpp"
 #include "math.hpp"
 
+inline glm::vec3 SphericalToVector(float theta, float phi, float psi) {
+    theta = glm::radians(theta);
+    phi = glm::radians(phi);
+    float x = cos(theta) * sin(phi);
+    float y = cos(phi);
+    float z = -sin(theta) * sin(phi);
+    std::cout << "(" << x << ", " << y << ", " << z << "): ";
+    return glm::vec3(x, y, z);
+}
+
 Window::Window() {
-    _horRes = 720;
+    _horRes = 1280;
     _vertRes = 720;
     _fov = 90;
 }
@@ -229,6 +240,17 @@ int Window::ChangeCameraAngle(float theta, float phi, float psi) {
     return SUCCESS;
 }
 
+int Window::MoveCamera(double forward, double right, double up) {
+    float theta = glm::radians(_camera._theta);
+    float phi = glm::radians(_camera._phi);
+    float x = cos(theta);
+    float z = -sin(theta);
+    _camera._x += (forward * x) - (right * z);
+    _camera._z += (forward * z) + (right * x);
+    _camera._y += up;
+    return SUCCESS;
+}
+
 void DrawSphere(const Body* body, Camera* camera, std::vector<float>& vertexData) {
 
 }
@@ -238,7 +260,9 @@ int Window::DrawFrame(Universe* universe) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     const std::map<long long, Body>* bodies = universe->GetBodies();
+    auto body = bodies->at(0);
     std::vector<float> vertexData = {
+        /*
         // front
         -0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
         0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
@@ -269,8 +293,13 @@ int Window::DrawFrame(Universe* universe) {
         0.5f, -0.5f, 0.5f, 0.2f, 0.2f, 0.2f,
         0.5f, -0.5f, -0.5f, 0.2f, 0.2f, 0.2f,
         -0.5f, -0.5f, -0.5f, 0.2f, 0.2f, 0.2f
+        */
+       0.0f, 0.0f, -5.0f, 1.0f, 1.0f, 1.0f,
+       5.0f, 0.0f, -5.0f, 1.0f, 0.0f, 0.0f,
+       0.0f, 5.0f, -5.0f, 0.0f, 0.0f, 1.0f
     };
     std::vector<unsigned int> elementData = {
+        /*
         // front
         0, 1, 2,
         2, 3, 0,
@@ -289,6 +318,8 @@ int Window::DrawFrame(Universe* universe) {
         // bottom
         20, 21, 22,
         22, 23, 20
+        */
+       0, 1, 2
     };
 
     for (auto iter = bodies->begin(); iter != bodies->end(); iter++) {
@@ -303,9 +334,10 @@ int Window::DrawFrame(Universe* universe) {
     glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
     float nearPlane = 0.1f;
-    float farPlane = 1000.0f;
-    glm::vec3 camPosition(0.0f, 0.0f, 1.5f);
-    glm::vec3 camFront(0.0f, 0.0f, -1.0f);
+    float farPlane = 500.0f;
+    glm::vec3 camPosition(_camera._x, _camera._y, _camera._z);
+    glm::vec3 camFront(SphericalToVector(_camera._theta, _camera._phi, _camera._psi));
+    std::cout << "(" << _camera._x << ", " << _camera._y << ", " << _camera._z << ")\n"; 
 
     glm::mat4 viewMatrix(1.0f);
     viewMatrix = glm::lookAt(camPosition, camPosition + camFront, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -313,7 +345,7 @@ int Window::DrawFrame(Universe* universe) {
     glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
     glm::mat4 projectionMatrix(1.0f);
-    projectionMatrix = glm::perspective(glm::radians(_fov), 1.0f, nearPlane, farPlane);
+    projectionMatrix = glm::perspective(glm::radians(_fov), (float)_horRes / (float)_vertRes, nearPlane, farPlane);
     auto projectionMatrixLocation = glGetUniformLocation(shaderProgram, "projectionMatrix");
     glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
