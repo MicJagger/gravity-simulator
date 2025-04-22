@@ -14,7 +14,7 @@ class Universe {
     std::map<long long, Body> _bodies;
     double _tickSpeed;
     double _timeScaling;
-    std::mutex mtx;
+    std::mutex _mtx;
 public:
     Math _math;
 
@@ -23,16 +23,16 @@ public:
 
     // getters
 
-    const std::map<long long, Body>* GetBodies() const;
-    double GetTickSpeed() const;
-    double GetTimeScaling() const;
+    const std::map<long long, Body>& GetBodies() const;
+    const double& GetTickSpeed() const;
+    const double& GetTimeScaling() const;
 
 
     // setters / manipulators
 
-    int AddBody(Body body);
-    int SetTickSpeed(double tickSpeed);
-    int SetTimeScaling(double timeScaling);
+    int AddBody(const Body& body);
+    int SetTickSpeed(const double& tickSpeed);
+    int SetTimeScaling(const double& timeScaling);
 
     int CalculateTick();
 };

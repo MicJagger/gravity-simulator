@@ -15,14 +15,49 @@
 #include "body.hpp"
 #include "math.hpp"
 
-inline glm::vec3 AngleToVector(float theta, float phi, float psi) {
-    theta = glm::radians(theta);
-    phi = glm::radians(phi);
-    float x = cos(theta) * sin(phi);
-    float y = sin(theta) * sin(phi);
-    float z = cos(phi);
+constexpr const char* vertexShaderSource = R"(
+    #version 330 core
+
+    layout (location = 0) in vec3 vPos;
+    layout (location = 1) in vec3 vColor;
+    layout (location = 2) in vec2 vTexCoords;
+
+    uniform mat4 viewMatrix;
+    uniform mat4 projectionMatrix;
+
+    out vec3 vertexColor;
+    out vec2 vertexTexCoords;
+
+    void main() {
+        gl_Position = projectionMatrix * viewMatrix * vec4(vPos.x, vPos.y, vPos.z, 1.0);
+        vertexColor = vColor;
+        vertexTexCoords = vec2(vTexCoords.x, vTexCoords.y * -1.0f);
+    }
+)";
+
+constexpr const char* fragmentShaderSource = R"(
+    #version 330 core
+
+    in vec3 vertexColor;
+
+    out vec4 FragColor;
+
+    void main() {
+        FragColor = vec4(vertexColor.r, vertexColor.g, vertexColor.b, 1.0f);
+    }
+)";
+
+inline glm::vec3 AngleToVector(const float& theta, const float& phi, const float& psi) {
+    float r_theta = glm::radians(theta);
+    float r_phi = glm::radians(phi);
+    float x = cos(r_theta) * sin(r_phi);
+    float y = sin(r_theta) * sin(r_phi);
+    float z = cos(r_phi);
     return glm::vec3(x, y, z);
 }
+
+
+// window functions
 
 Window::Window() {
     _horRes = 1280;
@@ -74,38 +109,6 @@ int Window::SetupOpenGL() {
     // tell opengl window size
     //SDL_GetWindowSize(_window, &w, &h);
     glViewport(0, 0, _horRes, _vertRes);
-
-    constexpr auto vertexShaderSource = R"(
-        #version 330 core
-
-        layout (location = 0) in vec3 vPos;
-        layout (location = 1) in vec3 vColor;
-        layout (location = 2) in vec2 vTexCoords;
-
-        uniform mat4 viewMatrix;
-        uniform mat4 projectionMatrix;
-
-        out vec3 vertexColor;
-        out vec2 vertexTexCoords;
-
-        void main() {
-            gl_Position = projectionMatrix * viewMatrix * vec4(vPos.x, vPos.y, vPos.z, 1.0);
-            vertexColor = vColor;
-            vertexTexCoords = vec2(vTexCoords.x, vTexCoords.y * -1.0f);
-        }
-    )";
-    
-    constexpr auto fragmentShaderSource = R"(
-        #version 330 core
-
-        in vec3 vertexColor;
-
-        out vec4 FragColor;
-
-        void main() {
-            FragColor = vec4(vertexColor.r, vertexColor.g, vertexColor.b, 1.0f);
-        }
-    )";
 
     // create shader object
     unsigned int vertexShader;
@@ -184,8 +187,8 @@ int Window::SetupOpenGL() {
     return SUCCESS;
 }
 
-const Camera *Window::GetCamera() {
-    return &_camera;
+const Camera& Window::GetCamera() {
+    return _camera;
 }
 
 std::vector<SDL_Event> Window::PollEvent() {
@@ -196,42 +199,28 @@ std::vector<SDL_Event> Window::PollEvent() {
     return events;
 }
 
-int Window::SetCameraPosition(double x, double y, double z) {
+int Window::SetCameraPosition(const double& x, const double& y, const double& z) {
     _camera._x = x;
     _camera._y = y;
     _camera._z = z;
     return SUCCESS;
 }
 
-int Window::SetCameraVelocity(double xVel, double yVel, double zVel) {
-    _camera._x = xVel;
-    _camera._y = yVel;
-    _camera._z = zVel;
-    return SUCCESS;
-}
-
-int Window::SetCameraAngle(float theta, float phi, float psi) {
+int Window::SetCameraAngle(const float& theta, const float& phi, const float& psi) {
     _camera._theta = fmod(theta, 360.0f);
     _camera._phi = fmod(phi, 360.0f);
     _camera._psi = fmod(psi, 360.0f);
     return SUCCESS;
 }
 
-int Window::ChangeCameraPosition(double x, double y, double z) {
+int Window::ChangeCameraPosition(const double& x, const double& y, const double& z) {
     _camera._x += x;
     _camera._y += y;
     _camera._z += z;
     return SUCCESS;
 }
 
-int Window::ChangeCameraVelocity(double xVel, double yVel, double zVel) {
-    _camera._x += xVel;
-    _camera._y += yVel;
-    _camera._z += zVel;
-    return SUCCESS;
-}
-
-int Window::ChangeCameraAngle(float theta, float phi, float psi) {
+int Window::ChangeCameraAngle(const float& theta, const float& phi, const float& psi) {
     _camera._theta = fmod(_camera._theta + theta, 360.0f);
     float newPhi = _camera._phi + phi;
     if (newPhi > 180) {
@@ -247,7 +236,7 @@ int Window::ChangeCameraAngle(float theta, float phi, float psi) {
     return SUCCESS;
 }
 
-int Window::MoveCamera(double forward, double right, double up) {
+int Window::MoveCamera(const double& forward, const double& right, const double& up) {
     float theta = glm::radians(_camera._theta);
     float x = cos(theta);
     float y = sin(theta);
@@ -257,16 +246,15 @@ int Window::MoveCamera(double forward, double right, double up) {
     return SUCCESS;
 }
 
-void DrawSphere(const Body* body, Camera* camera, std::vector<float>& vertexData) {
+void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vertexData, std::vector<unsigned int>& elementData) {
 
 }
 
-int Window::DrawFrame(Universe* universe) {
+int Window::DrawFrame(const Universe& universe) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    const std::map<long long, Body>* bodies = universe->GetBodies();
-    auto body = bodies->at(0);
+    const std::map<long long, Body> bodies = universe.GetBodies();
     std::vector<float> vertexData = {
         // forward
         -2.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f,
@@ -302,8 +290,8 @@ int Window::DrawFrame(Universe* universe) {
         9, 10, 11
     };
 
-    for (auto iter = bodies->begin(); iter != bodies->end(); iter++) {
-        //DrawSphere(&iter->second, camera, vertexData);
+    for (const auto& [id, data]: bodies) {
+        DrawSphere(data, _camera, vertexData, elementData);
     }
 
     float nearPlane = 0.1f;

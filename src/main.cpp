@@ -13,9 +13,9 @@
 #include "window.hpp"
 
 // handles the physics of all the objects
-void PhysicsThread(int* sigIn, int* sigOut, Universe* universe);
+void PhysicsThread(int& sigIn, int& sigOut, Universe& universe);
 // handles drawing of the frames
-void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window);
+void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window);
 
 // handles user inputs
 int main(int argc, char* argv[]) {
@@ -24,17 +24,16 @@ int main(int argc, char* argv[]) {
 
     Math math;
     math.SetTickSpeed(100);
-
     Universe universe;
     Window window;
     window.OpenWindow();
+
     int physIn = 1, physOut = 1;
-    std::thread physicsThread = std::thread(PhysicsThread, &physIn, &physOut, &universe);
+    std::thread physicsThread = std::thread(PhysicsThread, std::ref(physIn), std::ref(physOut), std::ref(universe));
     int renderIn = 1, renderOut = 1;
-    std::thread renderThread = std::thread(RenderThread, &renderIn, &renderOut, &universe, &window);
+    std::thread renderThread = std::thread(RenderThread, std::ref(renderIn), std::ref(renderOut), std::ref(universe), std::ref(window));
     int consoleIn = 1, consoleOut = 1;
-    std::thread consoleThread = std::thread(ConsoleThread, &consoleIn, &consoleOut, &universe, &window);
-    int returnVal = 0;
+    std::thread consoleThread = std::thread(ConsoleThread, std::ref(consoleIn), std::ref(consoleOut), std::ref(universe), std::ref(window));
     
     Body first;
     first._radius = 0.5;
@@ -45,25 +44,25 @@ int main(int argc, char* argv[]) {
 
     int key;
     std::set<int> keys;
+    bool forward = false, back = false, left = false, right = false;
     bool running = true;
     while (running) {
         math.TickStart();
-
-        bool forward = false, back = false, left = false, right = false;
-        std::vector<SDL_Event> event = window.PollEvent();
-        for (int i = 0; i < event.size(); i++) {
-            switch (event[i].type) {
+        
+        std::vector<SDL_Event> events = window.PollEvent();
+        for (SDL_Event event: events) {
+            switch (event.type) {
                 // Press Window X
                 case SDL_QUIT:
                     physIn = 0;
                     renderIn = 0;
                     consoleIn = 0;
-                    returnVal = 0;
+                    failVal = 0;
                     running = false;
                     std::cout << "main called quit\n";
                     break;
                 case SDL_KEYDOWN:
-                    key = event[i].key.keysym.sym;
+                    key = event.key.keysym.sym;
                     keys.emplace(key);
                     switch (key) {
                         case 'w':
@@ -81,7 +80,7 @@ int main(int argc, char* argv[]) {
                     }
                     break;
                 case SDL_KEYUP:
-                    key = event[i].key.keysym.sym;
+                    key = event.key.keysym.sym;
                     keys.erase(key);
                     switch (key) {
                         case 'w':
@@ -110,7 +109,7 @@ int main(int argc, char* argv[]) {
             switch (key) {
                 case 'w':
                     if (left || right) {
-                        window.MoveCamera(sqrt2 * cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
+                        window.MoveCamera(sqrt2o2 * cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
                     }
                     else {
                         window.MoveCamera(cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
@@ -118,7 +117,7 @@ int main(int argc, char* argv[]) {
                     break;
                 case 's':
                     if (left || right) {
-                        window.MoveCamera(sqrt2 * cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
+                        window.MoveCamera(sqrt2o2 * -cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
                     }
                     else {
                         window.MoveCamera(-cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
@@ -126,7 +125,7 @@ int main(int argc, char* argv[]) {
                     break;
                 case 'a':
                     if (forward || back) {
-                        window.MoveCamera(0.0, sqrt2 * -cameraSpeed / math.GetTickSpeed(), 0.0);
+                        window.MoveCamera(0.0, sqrt2o2 * -cameraSpeed / math.GetTickSpeed(), 0.0);
                     }
                     else {
                         window.MoveCamera(0.0, -cameraSpeed / math.GetTickSpeed(), 0.0);
@@ -134,7 +133,7 @@ int main(int argc, char* argv[]) {
                     break;
                 case 'd':
                     if (forward || back) {
-                        window.MoveCamera(0.0, sqrt2 * cameraSpeed / math.GetTickSpeed(), 0.0);
+                        window.MoveCamera(0.0, sqrt2o2 * cameraSpeed / math.GetTickSpeed(), 0.0);
                     }
                     else {
                         window.MoveCamera(0.0, cameraSpeed / math.GetTickSpeed(), 0.0);
@@ -166,21 +165,21 @@ int main(int argc, char* argv[]) {
             std::cout << "physics called quit\n";
             renderIn = physOut;
             consoleIn = physOut;
-            returnVal = physOut;
+            failVal = physOut;
             break;
         }
         if (renderOut <= SUCCESS) {
             std::cout << "render called quit\n";
             physIn = renderOut;
             consoleIn = renderOut;
-            returnVal = renderOut;
+            failVal = renderOut;
             break;
         }
         if (consoleOut <= SUCCESS) {
             std::cout << "console called quit\n";
             physIn = consoleOut;
             renderIn = consoleOut;
-            returnVal = consoleOut;
+            failVal = consoleOut;
             break;
         }
         math.TickEndAndSleep();
@@ -189,34 +188,36 @@ int main(int argc, char* argv[]) {
     renderThread.join();
     consoleThread.join();
 
-    return returnVal;
+    return failVal;
 }
 
 
 // threads
 
-void PhysicsThread(int* sigIn, int* sigOut, Universe* universe) {
+void PhysicsThread(int& sigIn, int& sigOut, Universe& universe) {
+    int failVal = 0;
     while (true) {
-        universe->_math.TickStart();
-        if (*sigIn <= SUCCESS) {
+        universe._math.TickStart();
+        universe.CalculateTick();
+        if (sigIn <= SUCCESS) {
             break;
         }
-        universe->_math.TickEndAndSleep();
+        universe._math.TickEndAndSleep();
     }
 }
 
-void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window) {
+void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
     int failVal = 0;
-    if ((failVal = window->SetupOpenGL()) < SUCCESS) {
-        *sigOut = failVal;
+    if ((failVal = window.SetupOpenGL()) < SUCCESS) {
+        sigOut = failVal;
         return;
     }
     while (true) {
-        window->_math.TickStart();
-        window->DrawFrame(universe);
-        if (*sigIn <= SUCCESS) {
+        window._math.TickStart();
+        window.DrawFrame(universe);
+        if (sigIn <= SUCCESS) {
             break;
         }
-        window->_math.TickEndAndSleep();
+        window._math.TickEndAndSleep();
     }
 }

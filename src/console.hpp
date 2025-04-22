@@ -23,7 +23,8 @@ std::vector<std::string> SplitArguments(std::string input);
 // TODO: implement linux version for nonblocking IO
 #ifdef __linux__
 // handles console I/O
-void ConsoleThread(int* sigIn, int* sigOut, Universe* universe, Window* window, Camera* camera) {
+void ConsoleThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
+    int failVal = 0;
     std::string input;
     std::vector<std::string> args;
     while (true) {
@@ -66,7 +67,8 @@ void ConsoleThread(int* sigIn, int* sigOut, Universe* universe, Window* window, 
 
 #ifdef _WIN32
 // handles console I/O
-void ConsoleThread(int* sigIn, int* sigOut, Universe* universe, Window* window) {
+void ConsoleThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
+    int failVal = 0;
     std::string input;
     std::vector<std::string> args;
     while (true) {
@@ -100,14 +102,14 @@ void ConsoleThread(int* sigIn, int* sigOut, Universe* universe, Window* window) 
                 "quit - end program\n";
             }
             else if (args[0] == "quit") {
-                *sigOut = 0;
+                sigOut = 0;
                 return;
             }
             else {
                 std::cout << "Command not recognized.\n";
             }
         }
-        if (*sigIn <= SUCCESS) {
+        if (sigIn <= SUCCESS) {
             break;
         }
         Math::sleep(0.050);

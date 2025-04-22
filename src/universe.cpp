@@ -6,18 +6,18 @@
 #include "body.hpp"
 #include "definitions.hpp"
 
-inline double CalculateAcceleration(double mass, double distanceSquared) {
+inline double CalculateAcceleration(const double& mass, const double& distanceSquared) {
     return G * mass / distanceSquared;
 }
 
-inline double CalculateDistanceSquared(Body obj1, Body obj2) {
+inline double CalculateDistanceSquared(const Body& obj1, const Body& obj2) {
     double dx = obj1._x - obj2._x;
     double dy = obj1._y - obj2._y;
     double dz = obj1._z - obj2._z;
     return (dx * dx) + (dy * dy) + (dz * dz);
 }
 
-inline bool CheckCollision(Body obj1, Body obj2) {
+inline bool CheckCollision(const Body& obj1, const Body& obj2) {
     double distance = sqrt(CalculateDistanceSquared(obj1, obj2));
     if ((obj1._radius + obj2._radius) >= distance) {
         return true;
@@ -25,7 +25,7 @@ inline bool CheckCollision(Body obj1, Body obj2) {
     return false;
 }
 
-inline bool CheckCollision(Body obj1, Body obj2, double distanceSquared) {
+inline bool CheckCollision(const Body& obj1, const Body& obj2, const double& distanceSquared) {
     double distance = sqrt(distanceSquared);
     if ((obj1._radius + obj2._radius) >= distance) {
         return true;
@@ -39,26 +39,26 @@ Universe::Universe() {
     _timeScaling = 1;
 }
 
-const std::map<long long, Body>* Universe::GetBodies() const {
-    return &_bodies;
+const std::map<long long, Body>& Universe::GetBodies() const {
+    return _bodies;
 }
 
-double Universe::GetTickSpeed() const {
+const double& Universe::GetTickSpeed() const {
     return _tickSpeed;
 }
 
-double Universe::GetTimeScaling() const {
+const double& Universe::GetTimeScaling() const {
     return _timeScaling;
 }
 
-int Universe::AddBody(Body body) {
+int Universe::AddBody(const Body& body) {
     _bodies.emplace(_highestId, body);
     std::cout << "Created new body with ID " << _highestId << "\n";
     _highestId++;
     return SUCCESS;
 }
 
-int Universe::SetTickSpeed(double tickSpeed) {
+int Universe::SetTickSpeed(const double& tickSpeed) {
     if (tickSpeed <= 0) {
         return FAIL;
     }
@@ -66,7 +66,7 @@ int Universe::SetTickSpeed(double tickSpeed) {
     return SUCCESS;
 }
 
-int Universe::SetTimeScaling(double timeScaling) {
+int Universe::SetTimeScaling(const double& timeScaling) {
     if (timeScaling <= 0) {
         return FAIL;
     }

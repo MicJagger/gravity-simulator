@@ -9,12 +9,6 @@ struct Camera {
     double _y;
     // m
     double _z;
-    // m/s
-    double _xVel;
-    // m/s
-    double _yVel;
-    // m/s
-    double _zVel;
     // degrees - horizontal
     float _theta;
     // degrees - vertical
@@ -23,8 +17,7 @@ struct Camera {
     float _psi;
 
     Camera() {
-        _x, _y, _z = 0;
-        _xVel, _yVel, _zVel = 0;
+        _x = 0, _y = 0, _z = 0;
         _theta = 90;
         _phi = 90;
         _psi = 0;

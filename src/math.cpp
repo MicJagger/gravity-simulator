@@ -65,11 +65,11 @@ Math::Math() {
     _targetTickSpeed = 60;
 }
 
-double Math::GetTickSpeed() {
+const double& Math::GetTickSpeed() {
     return _targetTickSpeed;
 }
 
-int Math::SetTickSpeed(double tickSpeed) {
+int Math::SetTickSpeed(const double& tickSpeed) {
     if (tickSpeed <= 0) {
         return FAIL;
     }

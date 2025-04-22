@@ -70,6 +70,7 @@
         "functional": "cpp",
         "mutex": "cpp",
         "random": "cpp",
-        "cstdarg": "cpp"
+        "cstdarg": "cpp",
+        "set": "cpp"
     }
 }

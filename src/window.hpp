@@ -15,6 +15,7 @@ class Window {
     SDL_Window* _window;
     SDL_GLContext _context;
     SDL_Event _windowEvent;
+    
     std::mutex _mtx;
 
     Camera _camera;
@@ -42,7 +43,7 @@ public:
     int SetupOpenGL();
 
     // getters
-    const Camera* GetCamera();
+    const Camera& GetCamera();
 
     // setters
 
@@ -52,18 +53,16 @@ public:
 
     // camera work
 
-    int SetCameraPosition(double x, double y, double z);
-    int SetCameraVelocity(double xVel, double yVel, double zVel);
-    int SetCameraAngle(float theta, float phi, float psi);
+    int SetCameraPosition(const double& x, const double& y, const double& z);
+    int SetCameraAngle(const float& theta, const float& phi, const float& psi);
 
-    int ChangeCameraPosition(double x, double y, double z);
-    int ChangeCameraVelocity(double xVel, double yVel, double zVel);
-    int ChangeCameraAngle(float theta, float phi, float psi);
+    int ChangeCameraPosition(const double& x, const double& y, const double& z);
+    int ChangeCameraAngle(const float& theta, const float& phi, const float& psi);
 
-    int MoveCamera(double forward, double right, double up);
+    int MoveCamera(const double& forward, const double& right, const double& up);
 
     // draw current frame
-    int DrawFrame(Universe* universe);
+    int DrawFrame(const Universe& universe);
 };
 
 #endif
