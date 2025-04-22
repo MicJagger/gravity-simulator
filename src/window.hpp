@@ -2,6 +2,7 @@
 #ifndef _WINDOW_HPP
 #define _WINDOW_HPP
 
+#include <mutex>
 #include <vector>
 
 #include "external/include_sdl.hpp"
@@ -14,6 +15,7 @@ class Window {
     SDL_Window* _window;
     SDL_GLContext _context;
     SDL_Event _windowEvent;
+    std::mutex _mtx;
 
     Camera _camera;
 

@@ -21,8 +21,6 @@ struct Camera {
     float _phi;
     // degrees - spin
     float _psi;
-    // m / s
-    double _moveSpeed;
 
     Camera() {
         _x, _y, _z = 0;
@@ -30,7 +28,6 @@ struct Camera {
         _theta = 90;
         _phi = 90;
         _psi = 0;
-        _moveSpeed = 1;
     }
 };
 

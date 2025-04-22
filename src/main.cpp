@@ -1,4 +1,6 @@
 #include <iostream>
+#include <mutex>
+#include <set>
 #include <string>
 #include <thread>
 #include <vector>
@@ -10,9 +12,6 @@
 #include "universe.hpp"
 #include "window.hpp"
 
-//int HandleKeypress();
-//int HandleKeyunpress();
-
 // handles the physics of all the objects
 void PhysicsThread(int* sigIn, int* sigOut, Universe* universe);
 // handles drawing of the frames
@@ -21,6 +20,10 @@ void RenderThread(int* sigIn, int* sigOut, Universe* universe, Window* window);
 // handles user inputs
 int main(int argc, char* argv[]) {
     int failVal = 0;
+    std::mutex mtx;
+
+    Math math;
+    math.SetTickSpeed(100);
 
     Universe universe;
     Window window;
@@ -37,11 +40,16 @@ int main(int argc, char* argv[]) {
     first._radius = 0.5;
     universe.AddBody(first);
 
-    unsigned int key;
-    //bool keys[322];
-    //std::fill_n(keys, 322, false);
+    double cameraSpeed = 10.0;
+    double cameraRotationSpeed = 120.0;
+
+    int key;
+    std::set<int> keys;
     bool running = true;
     while (running) {
+        math.TickStart();
+
+        bool forward = false, back = false, left = false, right = false;
         std::vector<SDL_Event> event = window.PollEvent();
         for (int i = 0; i < event.size(); i++) {
             switch (event[i].type) {
@@ -56,43 +64,39 @@ int main(int argc, char* argv[]) {
                     break;
                 case SDL_KEYDOWN:
                     key = event[i].key.keysym.sym;
-                    //keys[key] = true;
-                    if (key == 'w') {
-                        window.MoveCamera(1.0, 0.0, 0.0);
+                    keys.emplace(key);
+                    switch (key) {
+                        case 'w':
+                            forward = true;
+                            break;
+                        case 's':
+                            back = true;
+                            break;
+                        case 'a':
+                            left = true;
+                            break;
+                        case 'd':
+                            right = true;
+                            break;
                     }
-                    else if (key == 's') {
-                        window.MoveCamera(-1.0, 0.0, 0.0);
-                    }
-                    else if (key == 'a') {
-                        window.MoveCamera(0.0, -1.0, 0.0);
-                    }
-                    else if (key == 'd') {
-                        window.MoveCamera(0.0, 1.0, 0.0);
-                    }
-                    else if (key == SDLK_SPACE) {
-                        window.MoveCamera(0.0, 0.0, 1.0);
-                    }
-                    else if (key == SDLK_LCTRL) {
-                        window.MoveCamera(0.0, 0.0, -1.0);
-                    }
-                    else if (key == SDLK_UP) {
-                        window.ChangeCameraAngle(0.0f, -5.0f, 0.0f);
-                    }
-                    else if (key == SDLK_DOWN) {
-                        window.ChangeCameraAngle(0.0f, 5.0f, 0.0f);
-                    }
-                    else if (key == SDLK_LEFT) {
-                        window.ChangeCameraAngle(5.0f, 0.0f, 0.0f);
-                    }
-                    else if (key == SDLK_RIGHT) {
-                        window.ChangeCameraAngle(-5.0f, 0.0f, 0.0f);
-                    }
-                    //HandleKeypress(key, keys, universe, window, camera);
                     break;
                 case SDL_KEYUP:
                     key = event[i].key.keysym.sym;
-                    //keys[key] = false;
-                    //HandleKeyunpress(key, keys, universe, window, camera);
+                    keys.erase(key);
+                    switch (key) {
+                        case 'w':
+                            forward = false;
+                            break;
+                        case 's':
+                            back = false;
+                            break;
+                        case 'a':
+                            left = false;
+                            break;
+                        case 'd':
+                            right = false;
+                            break;
+                    }
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     break;
@@ -100,6 +104,63 @@ int main(int argc, char* argv[]) {
                     break;
             }
         }
+
+        mtx.lock();
+        for (int key: keys) {
+            switch (key) {
+                case 'w':
+                    if (left || right) {
+                        window.MoveCamera(sqrt2 * cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
+                    }
+                    else {
+                        window.MoveCamera(cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
+                    }
+                    break;
+                case 's':
+                    if (left || right) {
+                        window.MoveCamera(sqrt2 * cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
+                    }
+                    else {
+                        window.MoveCamera(-cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
+                    }
+                    break;
+                case 'a':
+                    if (forward || back) {
+                        window.MoveCamera(0.0, sqrt2 * -cameraSpeed / math.GetTickSpeed(), 0.0);
+                    }
+                    else {
+                        window.MoveCamera(0.0, -cameraSpeed / math.GetTickSpeed(), 0.0);
+                    }
+                    break;
+                case 'd':
+                    if (forward || back) {
+                        window.MoveCamera(0.0, sqrt2 * cameraSpeed / math.GetTickSpeed(), 0.0);
+                    }
+                    else {
+                        window.MoveCamera(0.0, cameraSpeed / math.GetTickSpeed(), 0.0);
+                    }
+                    break;
+                case SDLK_SPACE:
+                    window.MoveCamera(0.0, 0.0, cameraSpeed / math.GetTickSpeed());
+                    break;
+                case SDLK_LCTRL:
+                    window.MoveCamera(0.0, 0.0, -cameraSpeed / math.GetTickSpeed());
+                    break;
+                case SDLK_UP:
+                    window.ChangeCameraAngle(0.0f, -cameraRotationSpeed / math.GetTickSpeed(), 0.0f);
+                    break;
+                case SDLK_DOWN:
+                    window.ChangeCameraAngle(0.0f, cameraRotationSpeed / math.GetTickSpeed(), 0.0f);
+                    break;
+                case SDLK_LEFT:
+                    window.ChangeCameraAngle(cameraRotationSpeed / math.GetTickSpeed(), 0.0f, 0.0f);
+                    break;
+                case SDLK_RIGHT:
+                    window.ChangeCameraAngle(-cameraRotationSpeed / math.GetTickSpeed(), 0.0f, 0.0f);
+                    break;
+            }
+        }
+        mtx.unlock();
 
         if (physOut <= SUCCESS) {
             std::cout << "physics called quit\n";
@@ -122,7 +183,7 @@ int main(int argc, char* argv[]) {
             returnVal = consoleOut;
             break;
         }
-        Math::sleep(0.010);
+        math.TickEndAndSleep();
     }
     physicsThread.join();
     renderThread.join();
@@ -131,9 +192,8 @@ int main(int argc, char* argv[]) {
     return returnVal;
 }
 
-//int HandleKeypress() {}
 
-//int HandleKeyunpress() {}
+// threads
 
 void PhysicsThread(int* sigIn, int* sigOut, Universe* universe) {
     while (true) {

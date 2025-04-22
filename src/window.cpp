@@ -308,8 +308,10 @@ int Window::DrawFrame(Universe* universe) {
 
     float nearPlane = 0.1f;
     float farPlane = 1000.0f;
+    _mtx.lock();
     glm::vec3 camPosition(_camera._x, _camera._y, _camera._z);
     glm::vec3 camFront(AngleToVector(_camera._theta, _camera._phi, _camera._psi));
+    _mtx.unlock();
 
     glm::mat4 viewMatrix(1.0f);
     viewMatrix = glm::lookAt(camPosition, camPosition + camFront, glm::vec3(0.0f, 0.0f, 1.0f));

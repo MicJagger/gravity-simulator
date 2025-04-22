@@ -9,6 +9,7 @@ const double e = 2.7182818285;
 const double G = 6.6743e-11;
 const double g = 9.80665;
 const double pi = 3.1415926536;
+const double sqrt2 = 1.41421356237;
 
 class Math {
     double _targetTickSpeed;
