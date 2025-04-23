@@ -24,15 +24,14 @@ class Window {
     int _vertRes;
     float _fov;
 
-    // openGL objects
-    // im not putting underscores here because ¯\_(ツ)_/¯
+    // openGL "objects"
 
-    unsigned int shaderProgram;
-    unsigned int VBO;
-    unsigned int VAO;
-    unsigned int EBO;
+    unsigned int _shaderProgram;
+    unsigned int _VBO;
+    unsigned int _VAO;
+    unsigned int _EBO;
 public:
-    Math _math;
+    Math math;
 
     Window();
 

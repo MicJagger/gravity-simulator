@@ -141,22 +141,22 @@ int Window::SetupOpenGL() {
     }
 
     // create shader program to merge two pieces
-    shaderProgram = glCreateProgram();
+    _shaderProgram = glCreateProgram();
 
     // creates and links
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+    glAttachShader(_shaderProgram, vertexShader);
+    glAttachShader(_shaderProgram, fragmentShader);
+    glLinkProgram(_shaderProgram);
     // check for failure (even more)
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    glGetProgramiv(_shaderProgram, GL_LINK_STATUS, &success);
     if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        glGetProgramInfoLog(_shaderProgram, 512, NULL, infoLog);
         std::cout << "shaderProgram compilation failed\n" << infoLog << std::endl;
         return FAIL;
     }
 
     // use this program
-    glUseProgram(shaderProgram);
+    glUseProgram(_shaderProgram);
 
     // delete old objects
     glDeleteShader(vertexShader);
@@ -164,17 +164,17 @@ int Window::SetupOpenGL() {
 
     // setup other stuffs
 
-    glGenVertexArrays(1, &VAO);
+    glGenVertexArrays(1, &_VAO);
 
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    glGenBuffers(1, &_VBO);
+    glGenBuffers(1, &_EBO);
     
     // bind Vertex Array Object
-    glBindVertexArray(VAO);
+    glBindVertexArray(_VAO);
     // set it to be for vertices
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, _VBO);
     // bind element buffer
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
 
     // set vertex attributes pointers
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -200,49 +200,49 @@ std::vector<SDL_Event> Window::PollEvent() {
 }
 
 int Window::SetCameraPosition(const double& x, const double& y, const double& z) {
-    _camera._x = x;
-    _camera._y = y;
-    _camera._z = z;
+    _camera.x = x;
+    _camera.y = y;
+    _camera.z = z;
     return SUCCESS;
 }
 
 int Window::SetCameraAngle(const float& theta, const float& phi, const float& psi) {
-    _camera._theta = fmod(theta, 360.0f);
-    _camera._phi = fmod(phi, 360.0f);
-    _camera._psi = fmod(psi, 360.0f);
+    _camera.theta = fmod(theta, 360.0f);
+    _camera.phi = fmod(phi, 360.0f);
+    _camera.psi = fmod(psi, 360.0f);
     return SUCCESS;
 }
 
 int Window::ChangeCameraPosition(const double& x, const double& y, const double& z) {
-    _camera._x += x;
-    _camera._y += y;
-    _camera._z += z;
+    _camera.x += x;
+    _camera.y += y;
+    _camera.z += z;
     return SUCCESS;
 }
 
 int Window::ChangeCameraAngle(const float& theta, const float& phi, const float& psi) {
-    _camera._theta = fmod(_camera._theta + theta, 360.0f);
-    float newPhi = _camera._phi + phi;
+    _camera.theta = fmod(_camera.theta + theta, 360.0f);
+    float newPhi = _camera.phi + phi;
     if (newPhi > 180) {
-        _camera._phi = 179.999f;
+        _camera.phi = 179.999f;
     }
     else if (newPhi < 0) {
-        _camera._phi = 0.001f;
+        _camera.phi = 0.001f;
     }
     else {
-        _camera._phi = newPhi;
+        _camera.phi = newPhi;
     }
-    _camera._psi = fmod(_camera._psi + psi, 360.0f);
+    _camera.psi = fmod(_camera.psi + psi, 360.0f);
     return SUCCESS;
 }
 
 int Window::MoveCamera(const double& forward, const double& right, const double& up) {
-    float theta = glm::radians(_camera._theta);
+    float theta = glm::radians(_camera.theta);
     float x = cos(theta);
     float y = sin(theta);
-    _camera._x += (forward * x) + (right * y);
-    _camera._y += (forward * y) - (right * x);
-    _camera._z += up;
+    _camera.x += (forward * x) + (right * y);
+    _camera.y += (forward * y) - (right * x);
+    _camera.z += up;
     return SUCCESS;
 }
 
@@ -268,9 +268,9 @@ void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vert
     const float stackAngle = 180.0 / stackCount;
     const float sectorAngle = 360.0 / sectorCount;
 
-    const double x = body._x, y = body._y, z = body._z;
+    const double x = body.x, y = body.y, z = body.z;
     double dx = 0, dy = 0, dz = 0;
-    const double radius = body._radius;
+    const double radius = body.radius;
 
     // vertexData
     // top
@@ -344,18 +344,18 @@ int Window::DrawFrame(const Universe& universe) {
     float nearPlane = 0.1f;
     float farPlane = 1000.0f;
     _mtx.lock();
-    glm::vec3 camPosition(_camera._x, _camera._y, _camera._z);
-    glm::vec3 camFront(AngleToVector(_camera._theta, _camera._phi, _camera._psi));
+    glm::vec3 camPosition(_camera.x, _camera.y, _camera.z);
+    glm::vec3 camFront(AngleToVector(_camera.theta, _camera.phi, _camera.psi));
     _mtx.unlock();
 
     glm::mat4 viewMatrix(1.0f);
     viewMatrix = glm::lookAt(camPosition, camPosition + camFront, glm::vec3(0.0f, 0.0f, 1.0f));
-    auto viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
+    auto viewMatrixLocation = glGetUniformLocation(_shaderProgram, "viewMatrix");
     glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
     glm::mat4 projectionMatrix(1.0f);
     projectionMatrix = glm::perspective(glm::radians(_fov), (float)_horRes / (float)_vertRes, nearPlane, farPlane);
-    auto projectionMatrixLocation = glGetUniformLocation(shaderProgram, "projectionMatrix");
+    auto projectionMatrixLocation = glGetUniformLocation(_shaderProgram, "projectionMatrix");
     glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
     // copy vertex data into buffer

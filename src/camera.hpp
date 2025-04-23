@@ -4,23 +4,23 @@
 
 struct Camera {
     // m
-    double _x;
+    double x;
     // m
-    double _y;
+    double y;
     // m
-    double _z;
+    double z;
     // degrees - horizontal
-    float _theta;
+    float theta;
     // degrees - vertical
-    float _phi;
+    float phi;
     // degrees - spin
-    float _psi;
+    float psi;
 
     Camera() {
-        _x = 0, _y = 0, _z = 0;
-        _theta = 90;
-        _phi = 90;
-        _psi = 0;
+        x = 0, y = 0, z = 0;
+        theta = 90;
+        phi = 90;
+        psi = 0;
     }
 };
 

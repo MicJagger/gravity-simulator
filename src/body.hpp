@@ -4,26 +4,26 @@
 
 struct Body {
     // m
-    double _x;
+    double x;
     // m
-    double _y;
+    double y;
     // m
-    double _z;
+    double z;
     // m/s
-    double _xVel;
+    double xVel;
     // m/s
-    double _yVel;
+    double yVel;
     // m/s
-    double _zVel;
+    double zVel;
     // m
-    double _radius;
+    double radius;
     // kg
-    double _mass;
+    double mass;
 
     Body() {
-        _x, _y, _z = 0;
-        _xVel, _yVel, _zVel = 0;
-        _radius, _mass = 0;
+        x, y, z = 0;
+        xVel, yVel, zVel = 0;
+        radius, mass = 0;
     }
 };
 

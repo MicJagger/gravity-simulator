@@ -18,7 +18,7 @@ class Universe {
     double _timeScaling;
     double _gravityScaling;
 public:
-    Math _math;
+    Math math;
 
     Universe();
     

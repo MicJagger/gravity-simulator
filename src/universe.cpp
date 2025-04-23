@@ -13,31 +13,31 @@ inline double CalculateAcceleration(const double& mass, const double& distanceSq
 }
 
 inline int Accelerate(Body& obj1, const Body& obj2, const double& tickspeedFactor, const double& gravityScaling) {
-    double dx = obj2._x - obj1._x;
-    double dy = obj2._y - obj1._y;
-    double dz = obj2._z - obj1._z;
+    double dx = obj2.x - obj1.x;
+    double dy = obj2.y - obj1.y;
+    double dz = obj2.z - obj1.z;
     double distanceSquared = (dx * dx) + (dy * dy) + (dz * dz);
     double distance = sqrt(distanceSquared);
-    double acceleration = CalculateAcceleration(obj2._mass, distanceSquared) * gravityScaling;
+    double acceleration = CalculateAcceleration(obj2.mass, distanceSquared) * gravityScaling;
     double accelerationFraction = tickspeedFactor * acceleration;
     if (abs(dx) > 0.001) {
-        obj1._xVel += accelerationFraction * (dx / distance);
+        obj1.xVel += accelerationFraction * (dx / distance);
     }
     if (abs(dy) > 0.001) {
-        obj1._yVel += accelerationFraction * (dy / distance);
+        obj1.yVel += accelerationFraction * (dy / distance);
     }
     if (abs(dz) > 0.001) {
-        obj1._zVel += accelerationFraction * (dz / distance);
+        obj1.zVel += accelerationFraction * (dz / distance);
     }
     return SUCCESS;
 }
 
 inline bool CheckCollision(const Body& obj1, const Body& obj2) {
-    double dx = obj2._x - obj1._x;
-    double dy = obj2._y - obj1._y;
-    double dz = obj2._z - obj1._z;
+    double dx = obj2.x - obj1.x;
+    double dy = obj2.y - obj1.y;
+    double dz = obj2.z - obj1.z;
     double distance = sqrt((dx * dx) + (dy * dy) + (dz * dz));
-    if ((obj1._radius + obj2._radius) >= distance) {
+    if ((obj1.radius + obj2.radius) >= distance) {
         return true;
     }
     return false;
@@ -45,7 +45,7 @@ inline bool CheckCollision(const Body& obj1, const Body& obj2) {
 
 inline bool CheckCollision(const Body& obj1, const Body& obj2, const double& distanceSquared) {
     double distance = sqrt(distanceSquared);
-    if ((obj1._radius + obj2._radius) >= distance) {
+    if ((obj1.radius + obj2.radius) >= distance) {
         return true;
     }
     return false;
@@ -90,7 +90,7 @@ int Universe::SetTickSpeed(const double& tickSpeed) {
         return FAIL;
     }
     _mtx.lock();
-    _math.SetTickSpeed(tickSpeed);
+    math.SetTickSpeed(tickSpeed);
     _tickSpeed = tickSpeed;
     _mtx.unlock();
     return SUCCESS;
@@ -118,9 +118,9 @@ int Universe::CalculateTick() {
     _mtx.lock();
     // move positions
     for (auto& [id, obj]: _bodies) {
-        obj._x += obj._xVel * tickspeedFactor;
-        obj._y += obj._yVel * tickspeedFactor;
-        obj._z += obj._zVel * tickspeedFactor;
+        obj.x += obj.xVel * tickspeedFactor;
+        obj.y += obj.yVel * tickspeedFactor;
+        obj.z += obj.zVel * tickspeedFactor;
     }
     // calculate accelerations
     for (auto& [id1, obj1]: _bodies) {

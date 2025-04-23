@@ -41,32 +41,33 @@ int main(int argc, char* argv[]) {
     universe.SetGravityScaling(1e10);
 
     Body first;
-    first._zVel = 1;
-    first._radius = 1;
-    first._mass = 1;
+    first.zVel = 1;
+    first.radius = 1;
+    first.mass = 1;
     universe.AddBody(first);
 
     Body second;
-    second._radius = 4;
-    second._mass = 64;
-    second._x = 20;
-    second._y = 20;
+    second.zVel = -1.0 / 64.0;
+    second.radius = 4;
+    second.mass = 64;
+    second.x = 20;
+    second.y = 20;
     universe.AddBody(second);
 
     // Earth Testing
     /*
     window.SetCameraPosition(0.0, 4 * -1188300, 0.0);
     Body first;
-    first._radius = 6378137;
-    first._mass = 5.972e24;
+    first.radius = 6378137;
+    first.mass = 5.972e24;
     universe.AddBody(first);
 
     Body second;
-    second._x = 6000000;
-    second._y = 1550000;
-    second._z = 1509350;
-    second._radius = 1;
-    second._mass = 1;
+    second.x = 6000000;
+    second.y = 1550000;
+    second.z = 1509350;
+    second.radius = 1;
+    second.mass = 1;
     universe.AddBody(second);
     //*/
 
@@ -228,12 +229,12 @@ int main(int argc, char* argv[]) {
 void PhysicsThread(int& sigIn, int& sigOut, Universe& universe) {
     int failVal = 0;
     while (true) {
-        universe._math.TickStart();
+        universe.math.TickStart();
         universe.CalculateTick();
         if (sigIn <= SUCCESS) {
             break;
         }
-        universe._math.TickEndAndSleep();
+        universe.math.TickEndAndSleep();
     }
 }
 
@@ -244,11 +245,11 @@ void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
         return;
     }
     while (true) {
-        window._math.TickStart();
+        window.math.TickStart();
         window.DrawFrame(universe);
         if (sigIn <= SUCCESS) {
             break;
         }
-        window._math.TickEndAndSleep();
+        window.math.TickEndAndSleep();
     }
 }
