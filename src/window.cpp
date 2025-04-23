@@ -246,8 +246,87 @@ int Window::MoveCamera(const double& forward, const double& right, const double&
     return SUCCESS;
 }
 
-void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vertexData, std::vector<unsigned int>& elementData) {
+inline void AddValues(std::vector<float>& vertexData, const float& f0, const float& f1, const float& f2) {
+    vertexData.push_back(f0);
+    vertexData.push_back(f1);
+    vertexData.push_back(f2);
+}
 
+inline void AddValues(std::vector<unsigned int>& elementData, const unsigned int& f0, const unsigned int& f1, const unsigned int& f2) {
+    elementData.push_back(f0);
+    elementData.push_back(f1);
+    elementData.push_back(f2);
+}
+
+void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vertexData, std::vector<unsigned int>& elementData) {
+    // tracks initial vertexData size to offset indices
+    int elementStart = vertexData.size() / 6;
+    int elementIndexStart = elementData.size();
+
+    const int stackCount = 45;
+    const int sectorCount = 45;
+    const float stackAngle = 180.0 / stackCount;
+    const float sectorAngle = 360.0 / sectorCount;
+
+    const double x = body._x, y = body._y, z = body._z;
+    double dx = 0, dy = 0, dz = 0;
+    const double radius = body._radius;
+
+    // vertexData
+    // top
+    AddValues(vertexData, x, y, z + radius);
+    AddValues(vertexData, 1.0f, 1.0f, 1.0f);
+    // all other points
+    for (int i = 1; i < stackCount; i++) {
+        dz = radius * cos(glm::radians(i * stackAngle));
+        for (int j = 0; j < sectorCount; j++) {
+            dx = radius * sin(glm::radians(i * stackAngle)) * cos(glm::radians(j * sectorAngle));
+            dy = radius * sin(glm::radians(i * stackAngle)) * sin(glm::radians(j * sectorAngle));
+            AddValues(vertexData, x + dx, y + dy, z + dz);
+            AddValues(vertexData, 0.0f, 0.0f, 1.0f);
+        }
+    }
+    // bottom
+    AddValues(vertexData, x, y, z - radius);
+    AddValues(vertexData, 1.0f, 1.0f, 1.0f);
+
+    // elementData
+    // top triangles
+    for (int j = 1; j <= sectorCount; j++) {
+        AddValues(elementData, 0, j, (j % sectorCount) + 1);
+    }
+    // middle squares
+    for (int i = 0; i < (stackCount - 1); i++) {
+        if (i > 0) {
+            int rowIndexStart = sectorCount * i;
+            for (int j = 1; j <= sectorCount; j++) {
+                int vertex1 = j + rowIndexStart;
+                int vertex2 = (j % sectorCount) + 1 + rowIndexStart;
+                int vertex3 = (j % sectorCount) + 1 + rowIndexStart - sectorCount;
+                AddValues(elementData, vertex1, vertex2, vertex3);
+            }
+        }
+        if (i < (stackCount - 2)) {
+            int rowIndexStart = sectorCount * i;
+            for (int j = 1; j <= sectorCount; j++) {
+                int vertex1 = j + rowIndexStart;
+                int vertex2 = (j % sectorCount) + 1 + rowIndexStart;
+                int vertex3 = j + sectorCount + rowIndexStart;
+                AddValues(elementData, vertex1, vertex2, vertex3);
+            }
+        }
+    }
+    // bottom triangles
+    int start = (stackCount - 2) * sectorCount + 1;
+    int end = (stackCount - 1) * sectorCount;
+    for (int j = start; j <= end; j++) {
+        AddValues(elementData, end + 1, j, start + (j % sectorCount));
+    }
+    // offset indices by element start value
+    // this could maybe be factored into all the above calculations, but this has benefits too
+    for (int i = elementIndexStart; i < elementData.size(); i++) {
+        elementData[i] += elementStart;
+    }
 }
 
 int Window::DrawFrame(const Universe& universe) {
@@ -255,40 +334,8 @@ int Window::DrawFrame(const Universe& universe) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     const std::map<long long, Body> bodies = universe.GetBodies();
-    std::vector<float> vertexData = {
-        // forward
-        -2.0f, 5.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        2.0f, 5.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-        0.0f, 5.0f, 5.0f, 1.0f, 1.0f, 1.0f,
-
-        // right
-        5.0f, -2.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        5.0f, 2.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        5.0f, 0.0f, -5.0f, 1.0f, 1.0f, 1.0f,
-
-        // back
-        -2.0f, -5.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-        2.0f, -5.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-        0.0f, -5.0f, 5.0f, 0.0f, 0.0f, 1.0f,
-
-        // left
-        -5.0f, -2.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-        -5.0f, 2.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-        -5.0f, 0.0f, -5.0f, 1.0f, 0.0f, 0.0f
-    };
-    std::vector<unsigned int> elementData = {
-        // top
-        0, 1, 2,
-
-        // right
-        3, 4, 5,
-
-        // back
-        6, 7, 8,
-
-        // left
-        9, 10, 11
-    };
+    std::vector<float> vertexData;
+    std::vector<unsigned int> elementData;
 
     for (const auto& [id, data]: bodies) {
         DrawSphere(data, _camera, vertexData, elementData);
@@ -315,8 +362,6 @@ int Window::DrawFrame(const Universe& universe) {
     glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(float), vertexData.data(), GL_STREAM_DRAW);
     // copy element data buffer
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementData.size() * sizeof(unsigned int), elementData.data(), GL_STREAM_DRAW);
-
-    glBindVertexArray(VAO);
 
     glDrawElements(GL_TRIANGLES, elementData.size() * sizeof(unsigned int), GL_UNSIGNED_INT, 0);
 

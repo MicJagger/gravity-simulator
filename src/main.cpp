@@ -35,9 +35,17 @@ int main(int argc, char* argv[]) {
     int consoleIn = 1, consoleOut = 1;
     std::thread consoleThread = std::thread(ConsoleThread, std::ref(consoleIn), std::ref(consoleOut), std::ref(universe), std::ref(window));
     
+    window.SetCameraPosition(0.0, -5.0, 0.0);
+
     Body first;
-    first._radius = 0.5;
+    first._radius = 1;
     universe.AddBody(first);
+
+    Body second;
+    second._x = 10;
+    second._y = 10;
+    second._radius = 2;
+    universe.AddBody(second);
 
     double cameraSpeed = 10.0;
     double cameraRotationSpeed = 120.0;
