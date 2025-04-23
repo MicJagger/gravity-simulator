@@ -35,17 +35,40 @@ int main(int argc, char* argv[]) {
     int consoleIn = 1, consoleOut = 1;
     std::thread consoleThread = std::thread(ConsoleThread, std::ref(consoleIn), std::ref(consoleOut), std::ref(universe), std::ref(window));
     
-    window.SetCameraPosition(0.0, -5.0, 0.0);
+    window.SetCameraPosition(0.0, -10.0, 0);
+
+    universe.SetTimeScaling(5);
+    universe.SetGravityScaling(1e10);
 
     Body first;
+    first._zVel = 1;
     first._radius = 1;
+    first._mass = 1;
     universe.AddBody(first);
 
     Body second;
-    second._x = 10;
-    second._y = 10;
-    second._radius = 2;
+    second._radius = 4;
+    second._mass = 64;
+    second._x = 20;
+    second._y = 20;
     universe.AddBody(second);
+
+    // Earth Testing
+    /*
+    window.SetCameraPosition(0.0, 4 * -1188300, 0.0);
+    Body first;
+    first._radius = 6378137;
+    first._mass = 5.972e24;
+    universe.AddBody(first);
+
+    Body second;
+    second._x = 6000000;
+    second._y = 1550000;
+    second._z = 1509350;
+    second._radius = 1;
+    second._mass = 1;
+    universe.AddBody(second);
+    //*/
 
     double cameraSpeed = 10.0;
     double cameraRotationSpeed = 120.0;

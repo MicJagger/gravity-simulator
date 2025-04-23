@@ -10,6 +10,8 @@ constexpr double G = 6.6743e-11;
 constexpr double g = 9.80665;
 constexpr double pi = 3.1415926536;
 constexpr double sqrt2 = 1.41421356237;
+
+constexpr double G2oc2 = 2 * G / (c * c);
 constexpr double sqrt2o2 = 0.70710678118;
 
 class Math {
