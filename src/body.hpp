@@ -19,11 +19,14 @@ struct Body {
     double radius;
     // kg
     double mass;
+    // W
+    double luminosity;
 
     Body() {
-        x, y, z = 0;
-        xVel, yVel, zVel = 0;
-        radius, mass = 0;
+        x, y, z = 0.0;
+        xVel, yVel, zVel = 0.0;
+        radius, mass = 0.0;
+        luminosity = 0.0;
     }
 };
 

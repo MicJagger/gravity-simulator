@@ -27,8 +27,8 @@ class Window {
     // openGL "objects"
 
     unsigned int _shaderProgram;
-    unsigned int _VBO;
     unsigned int _VAO;
+    unsigned int _VBO;
     unsigned int _EBO;
 public:
     Math math;

@@ -15,35 +15,53 @@
 #include "body.hpp"
 #include "math.hpp"
 
+// POS.X, POS.Y, POS.Z, COLOR.R, COLOR.G, COLOR.B, TEX.X, TEX.Y, NORMAL.X, NORMAL.Y, NORMAL.Z
+constexpr int vertexFloatWidth = 11;
+
 constexpr const char* vertexShaderSource = R"(
     #version 330 core
 
     layout (location = 0) in vec3 vPos;
     layout (location = 1) in vec3 vColor;
     layout (location = 2) in vec2 vTexCoords;
+    layout (location = 3) in vec3 vNormals;
 
-    uniform mat4 viewMatrix;
     uniform mat4 projectionMatrix;
+    uniform mat4 viewMatrix;
 
+    out vec3 vertexPos;
     out vec3 vertexColor;
     out vec2 vertexTexCoords;
+    out vec3 vertexNormal;
 
     void main() {
-        gl_Position = projectionMatrix * viewMatrix * vec4(vPos.x, vPos.y, vPos.z, 1.0);
+        gl_Position = projectionMatrix * viewMatrix * vec4(vPos.x, vPos.y, vPos.z, 1.0f);
+        vertexPos = vPos;
         vertexColor = vColor;
-        vertexTexCoords = vec2(vTexCoords.x, vTexCoords.y * -1.0f);
+        //vertexTexCoords = vec2(vTexCoords.x, vTexCoords.y * -1.0f);
+        vertexNormal = vNormals;
     }
 )";
 
 constexpr const char* fragmentShaderSource = R"(
     #version 330 core
 
+    float ambientStrength = 0.1f;
+    vec3 lightPos = vec3(40.0f, 0.0f, 20.0f);
+
+    in vec3 vertexPos;
     in vec3 vertexColor;
+    in vec3 vertexNormal;
 
     out vec4 FragColor;
 
     void main() {
-        FragColor = vec4(vertexColor.r, vertexColor.g, vertexColor.b, 1.0f);
+        vec3 vNorm = normalize(vertexNormal);
+        vec3 lightDirection = normalize(lightPos - vertexPos);
+        float diff = max(dot(vNorm, lightDirection), 0.0f);
+        //float lightIntensity = max(diff, ambientStrength);
+        float lightIntensity = 1.0f - ((1.0f - ambientStrength) * (1.0f - diff));
+        FragColor = vec4(vertexColor * lightIntensity, 1.0f);
     }
 )";
 
@@ -104,10 +122,8 @@ int Window::SetupOpenGL() {
 
     // Disable depth test and face culling.
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
 
     // tell opengl window size
-    //SDL_GetWindowSize(_window, &w, &h);
     glViewport(0, 0, _horRes, _vertRes);
 
     // create shader object
@@ -165,6 +181,7 @@ int Window::SetupOpenGL() {
     // setup other stuffs
 
     glGenVertexArrays(1, &_VAO);
+    //glGenVertexArrays(1, &_lightVAO);
 
     glGenBuffers(1, &_VBO);
     glGenBuffers(1, &_EBO);
@@ -177,12 +194,20 @@ int Window::SetupOpenGL() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
 
     // set vertex attributes pointers
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexFloatWidth * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     // color
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertexFloatWidth * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // texture
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vertexFloatWidth * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    // normals
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, vertexFloatWidth * sizeof(float), (void*)(8 * sizeof(float)));
+    glEnableVertexAttribArray(3);
 
     return SUCCESS;
 }
@@ -258,9 +283,9 @@ inline void AddValues(std::vector<unsigned int>& elementData, const unsigned int
     elementData.push_back(f2);
 }
 
-void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vertexData, std::vector<unsigned int>& elementData) {
+void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vertexData, std::vector<unsigned int>& elementData, const float& red, const float& green, const float& blue) {
     // tracks initial vertexData size to offset indices
-    int elementStart = vertexData.size() / 6;
+    int elementStart = vertexData.size() / vertexFloatWidth;
     int elementIndexStart = elementData.size();
 
     const int stackCount = 45;
@@ -269,26 +294,41 @@ void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vert
     const float sectorAngle = 360.0 / sectorCount;
 
     const double x = body.x, y = body.y, z = body.z;
+    // delta
     double dx = 0, dy = 0, dz = 0;
+    // delta normalized
+    double dxn = 0, dyn = 0, dzn = 0;
     const double radius = body.radius;
 
     // vertexData
     // top
-    AddValues(vertexData, x, y, z + radius);
-    AddValues(vertexData, 1.0f, 1.0f, 1.0f);
+    AddValues(vertexData, x, y, z + radius); // position
+    AddValues(vertexData, 1.0 - red, 1.0f - green, 1.0f - blue); // color (inverted)
+    vertexData.push_back(0.0f); // tex.x
+    vertexData.push_back(0.0f); // tex.y
+    AddValues(vertexData, 0.0f, 0.0f, 1.0f); // normal
     // all other points
     for (int i = 1; i < stackCount; i++) {
-        dz = radius * cos(glm::radians(i * stackAngle));
+        dzn = cos(glm::radians(i * stackAngle));
+        dz = radius * dzn;
         for (int j = 0; j < sectorCount; j++) {
-            dx = radius * sin(glm::radians(i * stackAngle)) * cos(glm::radians(j * sectorAngle));
-            dy = radius * sin(glm::radians(i * stackAngle)) * sin(glm::radians(j * sectorAngle));
-            AddValues(vertexData, x + dx, y + dy, z + dz);
-            AddValues(vertexData, 0.0f, 0.0f, 1.0f);
+            dxn = sin(glm::radians(i * stackAngle)) * cos(glm::radians(j * sectorAngle));
+            dyn = sin(glm::radians(i * stackAngle)) * sin(glm::radians(j * sectorAngle));
+            dx = radius * dxn;
+            dy = radius * dyn;
+            AddValues(vertexData, x + dx, y + dy, z + dz); // position
+            AddValues(vertexData, red, green, blue); // color
+            vertexData.push_back(0.0f); // tex.x
+            vertexData.push_back(0.0f); // tex.y
+            AddValues(vertexData, dxn, dyn, dzn); // normals
         }
     }
     // bottom
-    AddValues(vertexData, x, y, z - radius);
-    AddValues(vertexData, 1.0f, 1.0f, 1.0f);
+    AddValues(vertexData, x, y, z - radius); // position
+    AddValues(vertexData, 1.0 - red, 1.0f - green, 1.0f - blue); // color (inverted)
+    vertexData.push_back(0.0f); // tex.x
+    vertexData.push_back(0.0f); // tex.y
+    AddValues(vertexData, 0.0f, 0.0f, -1.0f); // normal
 
     // elementData
     // top triangles
@@ -337,16 +377,17 @@ int Window::DrawFrame(const Universe& universe) {
     std::vector<float> vertexData;
     std::vector<unsigned int> elementData;
 
+    _mtx.lock();
     for (const auto& [id, data]: bodies) {
-        DrawSphere(data, _camera, vertexData, elementData);
+        DrawSphere(data, _camera, vertexData, elementData, 0.0f, 0.0f, 1.0f);
     }
 
-    float nearPlane = 0.1f;
-    float farPlane = 1000.0f;
-    _mtx.lock();
     glm::vec3 camPosition(_camera.x, _camera.y, _camera.z);
     glm::vec3 camFront(AngleToVector(_camera.theta, _camera.phi, _camera.psi));
     _mtx.unlock();
+
+    float nearPlane = 0.1f;
+    float farPlane = 1000.0f;
 
     glm::mat4 viewMatrix(1.0f);
     viewMatrix = glm::lookAt(camPosition, camPosition + camFront, glm::vec3(0.0f, 0.0f, 1.0f));
