@@ -7,19 +7,21 @@
 #include "definitions.hpp"
 #include "values.hpp"
 
-inline double CalculateAcceleration(const double& mass, const double& distanceSquared) {
+inline double CalculateAcceleration(const double& mass, const double& distanceSquared, const double& cScaling) {
     double distance = sqrt(distanceSquared);
-    double relativity = 1.0;// / sqrt(1 - (G2oc2 * mass / distance));
+    double G2oc2Scaled = G2oc2 / (cScaling * cScaling); // 1 / c^2 -> 1 / cScaling^2
+    double relativity = 1.0 / sqrt(1.0 - (G2oc2Scaled * mass / distance));
     return (G * mass / distanceSquared) * relativity;
+    // https://physics.stackexchange.com/questions/47379/what-is-the-weight-equation-through-general-relativity
 }
 
-inline int Accelerate(Body& obj1, const Body& obj2, const double& tickspeedFactor, const double& gravityScaling) {
+inline int Accelerate(Body& obj1, const Body& obj2, const double& tickspeedFactor, const double& gravityScaling, const double& cScaling) {
     double dx = obj2.x - obj1.x;
     double dy = obj2.y - obj1.y;
     double dz = obj2.z - obj1.z;
     double distanceSquared = (dx * dx) + (dy * dy) + (dz * dz);
     double distance = sqrt(distanceSquared);
-    double acceleration = CalculateAcceleration(obj2.mass, distanceSquared) * gravityScaling;
+    double acceleration = CalculateAcceleration(obj2.mass, distanceSquared, cScaling) * gravityScaling;
     double accelerationFraction = tickspeedFactor * acceleration;
     if (fabs(distance) > 1e-4) {
         obj1.xVel += accelerationFraction * (dx / distance);
@@ -55,7 +57,12 @@ Universe::Universe() {
     _tickSpeed = 60;
     _timeScaling = 1;
     _gravityScaling = 1;
+    _cScaling = 1;
+    _paused = false;
 }
+
+
+// 
 
 const std::map<long long, Body>& Universe::GetBodies() const {
     return _bodies;
@@ -73,12 +80,23 @@ const double& Universe::GetGravityScaling() const {
     return _gravityScaling;
 }
 
+const double& Universe::GetcScaling() const {
+    return _cScaling;
+}
+
+const bool& Universe::IsPaused() const {
+    return _paused;
+}
+
+
+// 
+
 int Universe::AddBody(const Body& body) {
     _mtx.lock();
     _bodies.emplace(_highestId, body);
-    _mtx.unlock();
-    std::cout << "Added body: ID " << _highestId << "\n";
     _highestId++;
+    _mtx.unlock();
+    std::cout << "Added body: ID " << _highestId - 1 << "\n";
     return SUCCESS;
 }
 
@@ -110,9 +128,39 @@ int Universe::SetGravityScaling(const double& gravityScaling) {
     return SUCCESS;
 }
 
-int Universe::CalculateTick() {
-    double tickspeedFactor = _timeScaling * 1.0 / _tickSpeed;
+int Universe::SetcScaling(const double& cScaling) {
+    if (cScaling <= 0) {
+        return FAIL;
+    }
     _mtx.lock();
+    _cScaling = cScaling;
+    _mtx.unlock();
+    return SUCCESS;
+}
+
+int Universe::Pause() {
+    _mtx.lock();
+    if (_paused) {
+        return false;
+    }
+    _paused = true;
+    _mtx.unlock();
+    return true;
+}
+
+int Universe::Unpause() {
+    _mtx.lock();
+    if (!_paused) {
+        return false;
+    }
+    _paused = false;
+    _mtx.unlock();
+    return true;
+}
+
+int Universe::CalculateTick() {
+    _mtx.lock();
+    double tickspeedFactor = _timeScaling * 1.0 / _tickSpeed;
     // move positions
     for (auto& [id, obj]: _bodies) {
         obj.x += obj.xVel * tickspeedFactor;
@@ -126,7 +174,7 @@ int Universe::CalculateTick() {
             if (id1 == id2) {
                 continue;
             }
-            Accelerate(obj1, obj2, tickspeedFactor, _gravityScaling);
+            Accelerate(obj1, obj2, tickspeedFactor, _gravityScaling, _cScaling);
         }
     }
     _mtx.unlock();

@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     double radiusScale = 40.0;
     SpawnSolarSystemScaled(universe, scale, radiusScale);
 
-    double cameraSpeed = 200.0;
+    double cameraSpeed = c * scale * 1000;
     double cameraRotationSpeed = 120.0;
 
     int key;
@@ -208,7 +208,9 @@ void PhysicsThread(int& sigIn, int& sigOut, Universe& universe) {
     universe.SetTickSpeed(100);
     while (true) {
         universe.time.TickStart();
-        universe.CalculateTick();
+        if (!universe.IsPaused()) {
+            universe.CalculateTick();
+        }
         if (sigIn <= SUCCESS) {
             break;
         }
@@ -238,7 +240,9 @@ void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
 void SpawnSolarSystemScaled(Universe& universe, double& scaleValue, double& radiusScale) {
     std::mutex mtx;
     mtx.lock();
-    
+
+    universe.SetcScaling(scaleValue);
+
     Body body;
     // mass is scaled^3 to account for gravity being 1/r^2 and distance being r * scale
     double massScaling = scaleValue * scaleValue * scaleValue;

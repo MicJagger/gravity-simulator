@@ -21,59 +21,31 @@
 std::vector<std::string> SplitArguments(std::string input);
 
 // TODO: implement linux version for nonblocking IO
-#ifdef __linux__
 // handles console I/O
 void ConsoleThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
     int failVal = 0;
+    int inputReady;
+    char key;
     std::string input;
     std::vector<std::string> args;
     while (true) {
-        if () {
-            char key = ();
-            if (key == '\b') {
-                if (input.size() > 0) {
-                    input.pop_back();
-                }
-                std::cout << "\b \b";
-            }
-            else if (key == '\r') {
-                std::cout << "\n";
-            }
-            else { //key != '\b' && key != '\r'
-                input += key;
-                std::cout << key;
-            }
-            if (key != '\n' && key != '\r') {
-                continue;
-            }
-            args = SplitArguments(input);
-            input = "";
-            if (args.size() == 0) {
-                continue;
-            }
-            // commands
-            if (args[0] == "quit") {
-                *sigOut = 0;
-                return;
-            }
-        }
-        if (*sigIn <= SUCCESS) {
-            break;
-        }
-        Time::sleep(0.050);
-    }
-}
-#endif
 
-#ifdef _WIN32
-// handles console I/O
-void ConsoleThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
-    int failVal = 0;
-    std::string input;
-    std::vector<std::string> args;
-    while (true) {
-        if (_kbhit()) {
-            char key = _getch();
+        #ifdef _WIN32
+            inputReady = _kbhit();
+        #endif
+        #ifdef __linux__
+            inputReady = ();
+        #endif
+
+        if (inputReady) {
+
+            #ifdef _WIN32
+                key = getch();
+            #endif
+            #ifdef __linux__
+                key = ();
+            #endif
+
             if (key == '\b') {
                 if (input.size() > 0) {
                     input.pop_back();
@@ -99,12 +71,34 @@ void ConsoleThread(int& sigIn, int& sigOut, Universe& universe, Window& window) 
             // commands
             if (args[0] == "help") {
                 std::cout << "List of commands: \n" << 
-                "quit - end program\n";
+                "pause - pause universe\n" <<
+                "quit - end program\n" <<
+                "resume - unpause universe\n";
             }
+
+            else if (args[0] == "pause") {
+                if (universe.Pause()) {
+                    std::cout << "paused\n";
+                }
+                else {
+                    std::cout << "already paused\n";
+                }
+            }
+
             else if (args[0] == "quit") {
                 sigOut = 0;
                 return;
             }
+
+            else if (args[0] == "resume") {
+                if (universe.Unpause()) {
+                    std::cout << "resumed\n";
+                }
+                else {
+                    std::cout << "already running\n";
+                }
+            }
+
             else {
                 std::cout << "Command not recognized.\n";
             }
@@ -115,7 +109,6 @@ void ConsoleThread(int& sigIn, int& sigOut, Universe& universe, Window& window) 
         Time::sleep(0.050);
     }
 }
-#endif
 
 std::vector<std::string> SplitArguments(std::string input) {
     std::vector<std::string> args = { "" };

@@ -17,6 +17,9 @@ class Universe {
     double _tickSpeed;
     double _timeScaling;
     double _gravityScaling;
+    double _cScaling; // scaling speed of causality
+
+    bool _paused;
 public:
     Time time;
 
@@ -29,6 +32,8 @@ public:
     const double& GetTickSpeed() const;
     const double& GetTimeScaling() const;
     const double& GetGravityScaling() const;
+    const double& GetcScaling() const;
+    const bool& IsPaused() const;
 
 
     // setters / manipulators
@@ -37,6 +42,9 @@ public:
     int SetTickSpeed(const double& tickSpeed);
     int SetTimeScaling(const double& timeScaling);
     int SetGravityScaling(const double& gravityScaling);
+    int SetcScaling(const double& cScaling);
+    int Pause();
+    int Unpause();
 
     int CalculateTick();
 };
