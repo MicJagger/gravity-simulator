@@ -40,30 +40,14 @@ int main(int argc, char* argv[]) {
     
     window.SetCameraPosition(-100.0, -100.0, 0);
 
-    universe.SetTimeScaling(86400 * 28);
+    universe.SetTimeScaling(86400 * 7);
     universe.SetGravityScaling(1);
 
-    /*
-    Body first;
-    first.zVel = 1;
-    first.radius = 1;
-    first.mass = 1;
-    universe.AddBody(first);
-
-    Body second;
-    second.zVel = -1.0 / 64.0;
-    second.radius = 4;
-    second.mass = 64;
-    second.x = 20;
-    second.y = 20;
-    universe.AddBody(second);
-    //*/
-
-    double scale = 1.0 / 1e9;
-    double radiusScale = 50;
+    double scale = 1e-9;
+    double radiusScale = 40.0;
     SpawnSolarSystemScaled(universe, scale, radiusScale);
 
-    double cameraSpeed = 300.0;
+    double cameraSpeed = 200.0;
     double cameraRotationSpeed = 120.0;
 
     int key;
@@ -252,6 +236,9 @@ void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
 // testing / example
 
 void SpawnSolarSystemScaled(Universe& universe, double& scaleValue, double& radiusScale) {
+    std::mutex mtx;
+    mtx.lock();
+    
     Body body;
     // mass is scaled^3 to account for gravity being 1/r^2 and distance being r * scale
     double massScaling = scaleValue * scaleValue * scaleValue;
@@ -330,10 +317,12 @@ void SpawnSolarSystemScaled(Universe& universe, double& scaleValue, double& radi
     universe.AddBody(body);
 
     // moon
-    /*body.name = "luna";
+    body.name = "luna";
     body.radius = moonRadius * scaleValue * radiusScale;
     body.mass = moonMass * massScaling;
     body.x = -(earthDistance + moonDistance) * scaleValue;
     body.yVel = (earthVelocity + moonVelocity) * scaleValue;
-    universe.AddBody(body);*/
+    universe.AddBody(body);
+
+    mtx.unlock();
 }

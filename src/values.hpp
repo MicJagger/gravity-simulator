@@ -49,7 +49,7 @@ constexpr double earthVelocity = 29.7827e3;
 constexpr double moonRadius = 1737.4e3;
 constexpr double moonMass = 7.346e22;
 constexpr double moonDistance = 384399.0e3; // from earth
-constexpr double moonVelocity = 1.022e3;
+constexpr double moonVelocity = 1.022e3; // relative to earth
 
 // mars
 constexpr double marsRadius = 3389.5e3;

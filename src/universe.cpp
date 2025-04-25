@@ -21,13 +21,9 @@ inline int Accelerate(Body& obj1, const Body& obj2, const double& tickspeedFacto
     double distance = sqrt(distanceSquared);
     double acceleration = CalculateAcceleration(obj2.mass, distanceSquared) * gravityScaling;
     double accelerationFraction = tickspeedFactor * acceleration;
-    if (abs(dx) > 0.001) {
+    if (fabs(distance) > 1e-4) {
         obj1.xVel += accelerationFraction * (dx / distance);
-    }
-    if (abs(dy) > 0.001) {
         obj1.yVel += accelerationFraction * (dy / distance);
-    }
-    if (abs(dz) > 0.001) {
         obj1.zVel += accelerationFraction * (dz / distance);
     }
     return SUCCESS;
