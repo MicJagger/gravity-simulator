@@ -10,12 +10,15 @@
 #include "definitions.hpp"
 #include "math.hpp"
 #include "universe.hpp"
+#include "values.hpp"
 #include "window.hpp"
 
 // handles the physics of all the objects
 void PhysicsThread(int& sigIn, int& sigOut, Universe& universe);
 // handles drawing of the frames
 void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window);
+
+void SpawnSolarSystemScaled(Universe& universe, double& scaleValue, double& radiusScale);
 
 // handles user inputs
 int main(int argc, char* argv[]) {
@@ -35,11 +38,12 @@ int main(int argc, char* argv[]) {
     int consoleIn = 1, consoleOut = 1;
     std::thread consoleThread = std::thread(ConsoleThread, std::ref(consoleIn), std::ref(consoleOut), std::ref(universe), std::ref(window));
     
-    window.SetCameraPosition(0.0, -10.0, 0);
+    window.SetCameraPosition(-100.0, -100.0, 0);
 
-    universe.SetTimeScaling(5);
-    universe.SetGravityScaling(1e10);
+    universe.SetTimeScaling(86400 * 28);
+    universe.SetGravityScaling(1);
 
+    /*
     Body first;
     first.zVel = 1;
     first.radius = 1;
@@ -53,25 +57,13 @@ int main(int argc, char* argv[]) {
     second.x = 20;
     second.y = 20;
     universe.AddBody(second);
-
-    // Earth Testing
-    /*
-    window.SetCameraPosition(0.0, 4 * -1188300, 0.0);
-    Body first;
-    first.radius = 6378137;
-    first.mass = 5.972e24;
-    universe.AddBody(first);
-
-    Body second;
-    second.x = 6000000;
-    second.y = 1550000;
-    second.z = 1509350;
-    second.radius = 1;
-    second.mass = 1;
-    universe.AddBody(second);
     //*/
 
-    double cameraSpeed = 10.0;
+    double scale = 1.0 / 1e9;
+    double radiusScale = 50;
+    SpawnSolarSystemScaled(universe, scale, radiusScale);
+
+    double cameraSpeed = 300.0;
     double cameraRotationSpeed = 120.0;
 
     int key;
@@ -223,11 +215,11 @@ int main(int argc, char* argv[]) {
     return failVal;
 }
 
-
 // threads
 
 void PhysicsThread(int& sigIn, int& sigOut, Universe& universe) {
     int failVal = 0;
+    universe.SetTickSpeed(100);
     while (true) {
         universe.math.TickStart();
         universe.CalculateTick();
@@ -252,4 +244,94 @@ void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
         }
         window.math.TickEndAndSleep();
     }
+}
+
+
+// testing / example
+
+void SpawnSolarSystemScaled(Universe& universe, double& scaleValue, double& radiusScale) {
+    Body body;
+    // mass is scaled^3 to account for gravity being 1/r^2 and distance being r * scale
+    double massScaling = scaleValue * scaleValue * scaleValue;
+    // sun
+    body.name = "sol";
+    body.radius = sunRadius * scaleValue * radiusScale;
+    body.mass = sunMass * massScaling;
+    body.x = -sunDistance * scaleValue;
+    body.yVel = sunVelocity * scaleValue;
+    body.luminosity = 1.0;
+    universe.AddBody(body);
+    body.luminosity = 0.2f;
+
+    // mercury
+    body.name = "mercury";
+    body.radius = mercuryRadius * scaleValue * radiusScale;
+    body.mass = mercuryMass * massScaling;
+    body.x = -mercuryDistance * scaleValue;
+    body.yVel = mercuryVelocity * scaleValue;
+    universe.AddBody(body);
+
+    // venus
+    body.name = "venus";
+    body.radius = venusRadius * scaleValue * radiusScale;
+    body.mass = venusMass * massScaling;
+    body.x = -venusDistance * scaleValue;
+    body.yVel = venusVelocity * scaleValue;
+    universe.AddBody(body);
+
+    // earth
+    body.name = "earth";
+    body.radius = earthRadius * scaleValue * radiusScale;
+    body.mass = earthMass * massScaling;
+    body.x = -earthDistance * scaleValue;
+    body.yVel = earthVelocity * scaleValue;
+    universe.AddBody(body);
+
+    // mars
+    body.name = "mars";
+    body.radius = marsRadius * scaleValue * radiusScale;
+    body.mass = marsMass * massScaling;
+    body.x = -marsDistance * scaleValue;
+    body.yVel = marsVelocity * scaleValue;
+    universe.AddBody(body);
+
+    // jupiter
+    body.name = "jupiter";
+    body.radius = jupiterRadius * scaleValue * radiusScale;
+    body.mass = jupiterMass * massScaling;
+    body.x = -jupiterDistance * scaleValue;
+    body.yVel = jupiterVelocity * scaleValue;
+    universe.AddBody(body);
+
+    // saturn
+    body.name = "saturn";
+    body.radius = saturnRadius * scaleValue * radiusScale;
+    body.mass = saturnMass * massScaling;
+    body.x = -saturnDistance * scaleValue;
+    body.yVel = saturnVelocity * scaleValue;
+    universe.AddBody(body);
+
+    // uranus
+    body.name = "uranus";
+    body.radius = uranusRadius * scaleValue * radiusScale;
+    body.mass = uranusMass * massScaling;
+    body.x = -uranusDistance * scaleValue;
+    body.yVel = uranusVelocity * scaleValue;
+    universe.AddBody(body);
+
+    // neptune
+    body.name = "neptune";
+    body.radius = neptuneRadius * scaleValue * radiusScale;
+    body.mass = neptuneMass * massScaling;
+    body.x = -neptuneDistance * scaleValue;
+    body.yVel = neptuneVelocity * scaleValue;
+    universe.AddBody(body);
+
+    // moon
+    /*body.name = "luna";
+    body.radius = moonRadius * scaleValue * radiusScale;
+    body.mass = moonMass * massScaling;
+    body.x = -(earthDistance + moonDistance) * scaleValue;
+    body.yVel = (earthVelocity + moonVelocity) * scaleValue;
+    universe.AddBody(body);*/
 }

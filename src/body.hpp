@@ -2,7 +2,10 @@
 #ifndef _BODY_HPP
 #define _BODY_HPP
 
+#include <string>
+
 struct Body {
+    std::string name;
     // m
     double x;
     // m
@@ -23,10 +26,11 @@ struct Body {
     double luminosity;
 
     Body() {
+        name = "";
         x, y, z = 0.0;
         xVel, yVel, zVel = 0.0;
         radius, mass = 0.0;
-        luminosity = 0.0;
+        luminosity = 0.1;
     }
 };
 

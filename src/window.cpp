@@ -16,7 +16,7 @@
 #include "math.hpp"
 
 // POS.X, POS.Y, POS.Z, COLOR.R, COLOR.G, COLOR.B, TEX.X, TEX.Y, NORMAL.X, NORMAL.Y, NORMAL.Z
-constexpr int vertexFloatWidth = 11;
+constexpr int vertexFloatWidth = 12;
 
 constexpr const char* vertexShaderSource = R"(
     #version 330 core
@@ -24,7 +24,8 @@ constexpr const char* vertexShaderSource = R"(
     layout (location = 0) in vec3 vPos;
     layout (location = 1) in vec3 vColor;
     layout (location = 2) in vec2 vTexCoords;
-    layout (location = 3) in vec3 vNormals;
+    layout (location = 3) in float vMinBrightness;
+    layout (location = 4) in vec3 vNormals;
 
     uniform mat4 projectionMatrix;
     uniform mat4 viewMatrix;
@@ -32,6 +33,7 @@ constexpr const char* vertexShaderSource = R"(
     out vec3 vertexPos;
     out vec3 vertexColor;
     out vec2 vertexTexCoords;
+    out float vertexMinBrightness;
     out vec3 vertexNormal;
 
     void main() {
@@ -39,6 +41,7 @@ constexpr const char* vertexShaderSource = R"(
         vertexPos = vPos;
         vertexColor = vColor;
         //vertexTexCoords = vec2(vTexCoords.x, vTexCoords.y * -1.0f);
+        vertexMinBrightness = vMinBrightness;
         vertexNormal = vNormals;
     }
 )";
@@ -46,11 +49,11 @@ constexpr const char* vertexShaderSource = R"(
 constexpr const char* fragmentShaderSource = R"(
     #version 330 core
 
-    float ambientStrength = 0.1f;
-    vec3 lightPos = vec3(40.0f, 0.0f, 20.0f);
+    vec3 lightPos = vec3(0.0f, 0.0f, 0.0f);
 
     in vec3 vertexPos;
     in vec3 vertexColor;
+    in float vertexMinBrightness;
     in vec3 vertexNormal;
 
     out vec4 FragColor;
@@ -59,8 +62,7 @@ constexpr const char* fragmentShaderSource = R"(
         vec3 vNorm = normalize(vertexNormal);
         vec3 lightDirection = normalize(lightPos - vertexPos);
         float diff = max(dot(vNorm, lightDirection), 0.0f);
-        //float lightIntensity = max(diff, ambientStrength);
-        float lightIntensity = 1.0f - ((1.0f - ambientStrength) * (1.0f - diff));
+        float lightIntensity = min(diff + vertexMinBrightness, 1.0f);
         FragColor = vec4(vertexColor * lightIntensity, 1.0f);
     }
 )";
@@ -78,9 +80,9 @@ inline glm::vec3 AngleToVector(const float& theta, const float& phi, const float
 // window functions
 
 Window::Window() {
-    _horRes = 1280;
-    _vertRes = 720;
-    _fov = 90;
+    _horRes = 1600;
+    _vertRes = 900;
+    _fov = 75;
 }
 
 int Window::OpenWindow() {
@@ -181,16 +183,11 @@ int Window::SetupOpenGL() {
     // setup other stuffs
 
     glGenVertexArrays(1, &_VAO);
-    //glGenVertexArrays(1, &_lightVAO);
-
     glGenBuffers(1, &_VBO);
     glGenBuffers(1, &_EBO);
-    
-    // bind Vertex Array Object
+
     glBindVertexArray(_VAO);
-    // set it to be for vertices
     glBindBuffer(GL_ARRAY_BUFFER, _VBO);
-    // bind element buffer
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
 
     // set vertex attributes pointers
@@ -205,9 +202,13 @@ int Window::SetupOpenGL() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vertexFloatWidth * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    // normals
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, vertexFloatWidth * sizeof(float), (void*)(8 * sizeof(float)));
+    // minBrightness
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, vertexFloatWidth * sizeof(float), (void*)(8 * sizeof(float)));
     glEnableVertexAttribArray(3);
+
+    // normals
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, vertexFloatWidth * sizeof(float), (void*)(9 * sizeof(float)));
+    glEnableVertexAttribArray(4);
 
     return SUCCESS;
 }
@@ -306,6 +307,7 @@ void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vert
     AddValues(vertexData, 1.0 - red, 1.0f - green, 1.0f - blue); // color (inverted)
     vertexData.push_back(0.0f); // tex.x
     vertexData.push_back(0.0f); // tex.y
+    vertexData.push_back((float)body.luminosity); // minBrightness
     AddValues(vertexData, 0.0f, 0.0f, 1.0f); // normal
     // all other points
     for (int i = 1; i < stackCount; i++) {
@@ -320,6 +322,7 @@ void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vert
             AddValues(vertexData, red, green, blue); // color
             vertexData.push_back(0.0f); // tex.x
             vertexData.push_back(0.0f); // tex.y
+            vertexData.push_back((float)body.luminosity); // minBrightness
             AddValues(vertexData, dxn, dyn, dzn); // normals
         }
     }
@@ -328,6 +331,7 @@ void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vert
     AddValues(vertexData, 1.0 - red, 1.0f - green, 1.0f - blue); // color (inverted)
     vertexData.push_back(0.0f); // tex.x
     vertexData.push_back(0.0f); // tex.y
+    vertexData.push_back((float)body.luminosity); // minBrightness
     AddValues(vertexData, 0.0f, 0.0f, -1.0f); // normal
 
     // elementData
@@ -379,7 +383,7 @@ int Window::DrawFrame(const Universe& universe) {
 
     _mtx.lock();
     for (const auto& [id, data]: bodies) {
-        DrawSphere(data, _camera, vertexData, elementData, 0.0f, 0.0f, 1.0f);
+        DrawSphere(data, _camera, vertexData, elementData, 1.0f, 1.0f, 1.0f);
     }
 
     glm::vec3 camPosition(_camera.x, _camera.y, _camera.z);
@@ -387,7 +391,9 @@ int Window::DrawFrame(const Universe& universe) {
     _mtx.unlock();
 
     float nearPlane = 0.1f;
-    float farPlane = 1000.0f;
+    // set this back to <= 1000 once properly scaling distances
+    // it is set this high to test the solar system
+    float farPlane = 10000.0f;
 
     glm::mat4 viewMatrix(1.0f);
     viewMatrix = glm::lookAt(camPosition, camPosition + camFront, glm::vec3(0.0f, 0.0f, 1.0f));

@@ -5,10 +5,11 @@
 
 #include "body.hpp"
 #include "definitions.hpp"
+#include "values.hpp"
 
 inline double CalculateAcceleration(const double& mass, const double& distanceSquared) {
     double distance = sqrt(distanceSquared);
-    double relativity = 1.0 / sqrt(1 - (G2oc2 * mass / distance));
+    double relativity = 1.0;// / sqrt(1 - (G2oc2 * mass / distance));
     return (G * mass / distanceSquared) * relativity;
 }
 
@@ -80,7 +81,7 @@ int Universe::AddBody(const Body& body) {
     _mtx.lock();
     _bodies.emplace(_highestId, body);
     _mtx.unlock();
-    std::cout << "Added body with ID " << _highestId << "\n";
+    std::cout << "Added body: ID " << _highestId << "\n";
     _highestId++;
     return SUCCESS;
 }
