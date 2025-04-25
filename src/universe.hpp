@@ -7,7 +7,7 @@
 
 #include "body.hpp"
 #include "definitions.hpp"
-#include "math.hpp"
+#include "time.hpp"
 
 class Universe {
     long long _highestId = 0;
@@ -18,7 +18,7 @@ class Universe {
     double _timeScaling;
     double _gravityScaling;
 public:
-    Math math;
+    Time time;
 
     Universe();
     

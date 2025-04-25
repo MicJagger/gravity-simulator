@@ -11,9 +11,8 @@
 #include "external/include_glad.hpp"
 #include "external/include_sdl.hpp"
 
-#include "definitions.hpp"
 #include "body.hpp"
-#include "math.hpp"
+#include "definitions.hpp"
 
 // POS.X, POS.Y, POS.Z, COLOR.R, COLOR.G, COLOR.B, TEX.X, TEX.Y, NORMAL.X, NORMAL.Y, NORMAL.Z
 constexpr int vertexFloatWidth = 12;

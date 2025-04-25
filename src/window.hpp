@@ -8,7 +8,7 @@
 #include "external/include_sdl.hpp"
 
 #include "camera.hpp"
-#include "math.hpp"
+#include "time.hpp"
 #include "universe.hpp"
 
 class Window {
@@ -34,7 +34,7 @@ class Window {
     // elements
     unsigned int _EBO;
 public:
-    Math math;
+    Time time;
 
     Window();
 

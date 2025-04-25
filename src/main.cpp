@@ -8,7 +8,7 @@
 #include "body.hpp"
 #include "console.hpp"
 #include "definitions.hpp"
-#include "math.hpp"
+#include "time.hpp"
 #include "universe.hpp"
 #include "values.hpp"
 #include "window.hpp"
@@ -25,8 +25,8 @@ int main(int argc, char* argv[]) {
     int failVal = 0;
     std::mutex mtx;
 
-    Math math;
-    math.SetTickSpeed(100);
+    Time time;
+    time.SetTickSpeed(100);
     Universe universe;
     Window window;
     window.OpenWindow();
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     bool forward = false, back = false, left = false, right = false;
     bool running = true;
     while (running) {
-        math.TickStart();
+        time.TickStart();
         
         std::vector<SDL_Event> events = window.PollEvent();
         for (SDL_Event event: events) {
@@ -129,57 +129,59 @@ int main(int argc, char* argv[]) {
         }
 
         mtx.lock();
+        double tickMove = cameraSpeed / time.GetTickSpeed();
+        double tickRotate = cameraRotationSpeed / time.GetTickSpeed();
         for (int key: keys) {
             switch (key) {
                 case 'w':
                     if (left || right) {
-                        window.MoveCamera(sqrt2o2 * cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
+                        window.MoveCamera(sqrt2o2 * tickMove, 0.0, 0.0);
                     }
                     else {
-                        window.MoveCamera(cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
+                        window.MoveCamera(tickMove, 0.0, 0.0);
                     }
                     break;
                 case 's':
                     if (left || right) {
-                        window.MoveCamera(sqrt2o2 * -cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
+                        window.MoveCamera(sqrt2o2 * -tickMove, 0.0, 0.0);
                     }
                     else {
-                        window.MoveCamera(-cameraSpeed / math.GetTickSpeed(), 0.0, 0.0);
+                        window.MoveCamera(-tickMove, 0.0, 0.0);
                     }
                     break;
                 case 'a':
                     if (forward || back) {
-                        window.MoveCamera(0.0, sqrt2o2 * -cameraSpeed / math.GetTickSpeed(), 0.0);
+                        window.MoveCamera(0.0, sqrt2o2 * -tickMove, 0.0);
                     }
                     else {
-                        window.MoveCamera(0.0, -cameraSpeed / math.GetTickSpeed(), 0.0);
+                        window.MoveCamera(0.0, -tickMove, 0.0);
                     }
                     break;
                 case 'd':
                     if (forward || back) {
-                        window.MoveCamera(0.0, sqrt2o2 * cameraSpeed / math.GetTickSpeed(), 0.0);
+                        window.MoveCamera(0.0, sqrt2o2 * tickMove, 0.0);
                     }
                     else {
-                        window.MoveCamera(0.0, cameraSpeed / math.GetTickSpeed(), 0.0);
+                        window.MoveCamera(0.0, tickMove, 0.0);
                     }
                     break;
                 case SDLK_SPACE:
-                    window.MoveCamera(0.0, 0.0, cameraSpeed / math.GetTickSpeed());
+                    window.MoveCamera(0.0, 0.0, tickMove);
                     break;
                 case SDLK_LCTRL:
-                    window.MoveCamera(0.0, 0.0, -cameraSpeed / math.GetTickSpeed());
+                    window.MoveCamera(0.0, 0.0, -tickMove);
                     break;
                 case SDLK_UP:
-                    window.ChangeCameraAngle(0.0f, -cameraRotationSpeed / math.GetTickSpeed(), 0.0f);
+                    window.ChangeCameraAngle(0.0f, -tickRotate, 0.0f);
                     break;
                 case SDLK_DOWN:
-                    window.ChangeCameraAngle(0.0f, cameraRotationSpeed / math.GetTickSpeed(), 0.0f);
+                    window.ChangeCameraAngle(0.0f, tickRotate, 0.0f);
                     break;
                 case SDLK_LEFT:
-                    window.ChangeCameraAngle(cameraRotationSpeed / math.GetTickSpeed(), 0.0f, 0.0f);
+                    window.ChangeCameraAngle(tickRotate, 0.0f, 0.0f);
                     break;
                 case SDLK_RIGHT:
-                    window.ChangeCameraAngle(-cameraRotationSpeed / math.GetTickSpeed(), 0.0f, 0.0f);
+                    window.ChangeCameraAngle(-tickRotate, 0.0f, 0.0f);
                     break;
             }
         }
@@ -206,7 +208,7 @@ int main(int argc, char* argv[]) {
             failVal = consoleOut;
             break;
         }
-        math.TickEndAndSleep();
+        time.TickEndAndSleep();
     }
     physicsThread.join();
     renderThread.join();
@@ -221,12 +223,12 @@ void PhysicsThread(int& sigIn, int& sigOut, Universe& universe) {
     int failVal = 0;
     universe.SetTickSpeed(100);
     while (true) {
-        universe.math.TickStart();
+        universe.time.TickStart();
         universe.CalculateTick();
         if (sigIn <= SUCCESS) {
             break;
         }
-        universe.math.TickEndAndSleep();
+        universe.time.TickEndAndSleep();
     }
 }
 
@@ -237,12 +239,12 @@ void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
         return;
     }
     while (true) {
-        window.math.TickStart();
+        window.time.TickStart();
         window.DrawFrame(universe);
         if (sigIn <= SUCCESS) {
             break;
         }
-        window.math.TickEndAndSleep();
+        window.time.TickEndAndSleep();
     }
 }
 

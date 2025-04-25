@@ -14,7 +14,7 @@
 #endif
 
 #include "camera.hpp"
-#include "math.hpp"
+#include "time.hpp"
 #include "universe.hpp"
 #include "window.hpp"
 
@@ -60,7 +60,7 @@ void ConsoleThread(int& sigIn, int& sigOut, Universe& universe, Window& window) 
         if (*sigIn <= SUCCESS) {
             break;
         }
-        Math::sleep(0.050);
+        Time::sleep(0.050);
     }
 }
 #endif
@@ -112,7 +112,7 @@ void ConsoleThread(int& sigIn, int& sigOut, Universe& universe, Window& window) 
         if (sigIn <= SUCCESS) {
             break;
         }
-        Math::sleep(0.050);
+        Time::sleep(0.050);
     }
 }
 #endif

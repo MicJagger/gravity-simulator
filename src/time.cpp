@@ -1,4 +1,4 @@
-#include "math.hpp"
+#include "time.hpp"
 
 #include <chrono>
 
@@ -38,7 +38,7 @@ bool nanosleepWin(long long microseconds) {
 
 // public
 
-void Math::sleep(double seconds) {
+void Time::sleep(double seconds) {
     while (seconds > 0.002) { // takes "up to" 2 ms when sleeping for 1 ms
         auto start = std::chrono::high_resolution_clock::now();
 
@@ -61,15 +61,15 @@ void Math::sleep(double seconds) {
     while (std::chrono::high_resolution_clock::now() - start < delay);
 }
 
-Math::Math() {
+Time::Time() {
     _targetTickSpeed = 60;
 }
 
-const double& Math::GetTickSpeed() {
+const double& Time::GetTickSpeed() {
     return _targetTickSpeed;
 }
 
-int Math::SetTickSpeed(const double& tickSpeed) {
+int Time::SetTickSpeed(const double& tickSpeed) {
     if (tickSpeed <= 0) {
         return FAIL;
     }
@@ -77,15 +77,15 @@ int Math::SetTickSpeed(const double& tickSpeed) {
     return SUCCESS;
 }
 
-void Math::TickStart() {
+void Time::TickStart() {
     _tickStart = std::chrono::steady_clock::now();
 }
 
-void Math::TickEnd() {
+void Time::TickEnd() {
     _tickEnd = std::chrono::steady_clock::now();
 }
 
-void Math::TickEndAndSleep() {
+void Time::TickEndAndSleep() {
     _tickEnd = std::chrono::steady_clock::now();
     double tickDuration = (_tickEnd - _tickStart).count() / 1e9;
     double totalDuration = (1.0 / _targetTickSpeed);

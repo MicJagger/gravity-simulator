@@ -91,7 +91,7 @@ int Universe::SetTickSpeed(const double& tickSpeed) {
         return FAIL;
     }
     _mtx.lock();
-    math.SetTickSpeed(tickSpeed);
+    time.SetTickSpeed(tickSpeed);
     _tickSpeed = tickSpeed;
     _mtx.unlock();
     return SUCCESS;

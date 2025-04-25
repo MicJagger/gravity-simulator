@@ -1,17 +1,17 @@
 #pragma once
-#ifndef _MATH_HPP
-#define _MATH_HPP
+#ifndef _TIME_HPP
+#define _TIME_HPP
 
 #include <chrono>
 
-class Math {
+class Time {
     double _targetTickSpeed;
     std::chrono::steady_clock::time_point _tickStart;
     std::chrono::steady_clock::time_point _tickEnd;
 public:
     static void sleep(double seconds);
 
-    Math();
+    Time();
 
     const double& GetTickSpeed();
     int SetTickSpeed(const double& tickSpeed);
