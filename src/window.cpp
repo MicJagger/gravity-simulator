@@ -20,23 +20,30 @@ constexpr int vertexFloatWidth = 12;
 constexpr const char* vertexShaderSource = R"(
     #version 330 core
 
+    float zNear = 0.0001;
+    float zFar = 1000000000.0;
+    float fCoeff = 1.0 / log2(zFar + 1.0);
+
+    uniform mat4 projectionMatrix;
+    uniform mat4 viewMatrix;
+
     layout (location = 0) in vec3 vPos;
     layout (location = 1) in vec3 vColor;
     layout (location = 2) in vec2 vTexCoords;
     layout (location = 3) in float vMinBrightness;
     layout (location = 4) in vec3 vNormals;
 
-    uniform mat4 projectionMatrix;
-    uniform mat4 viewMatrix;
-
     out vec3 vertexPos;
     out vec3 vertexColor;
     out vec2 vertexTexCoords;
     out float vertexMinBrightness;
     out vec3 vertexNormal;
+    out float fragDepth;
 
     void main() {
         gl_Position = projectionMatrix * viewMatrix * vec4(vPos.x, vPos.y, vPos.z, 1.0f);
+        gl_Position.z = log2(max(zNear, 1.0 + gl_Position.w)) * fCoeff * 2.0 - 1.0;
+        fragDepth = log2(1.0 + gl_Position.w) * fCoeff;
         vertexPos = vPos;
         vertexColor = vColor;
         //vertexTexCoords = vec2(vTexCoords.x, vTexCoords.y * -1.0f);
@@ -48,12 +55,13 @@ constexpr const char* vertexShaderSource = R"(
 constexpr const char* fragmentShaderSource = R"(
     #version 330 core
 
-    vec3 lightPos = vec3(0.0f, 0.0f, 0.0f);
+    uniform vec3 lightPos;
 
     in vec3 vertexPos;
     in vec3 vertexColor;
     in float vertexMinBrightness;
     in vec3 vertexNormal;
+    in float fragDepth;
 
     out vec4 FragColor;
 
@@ -63,6 +71,7 @@ constexpr const char* fragmentShaderSource = R"(
         float diff = max(dot(vNorm, lightDirection), 0.0f);
         float lightIntensity = min(diff + vertexMinBrightness, 1.0f);
         FragColor = vec4(vertexColor * lightIntensity, 1.0f);
+        gl_FragDepth = fragDepth;
     }
 )";
 
@@ -380,9 +389,15 @@ int Window::DrawFrame(const Universe& universe) {
     std::vector<float> vertexData;
     std::vector<unsigned int> elementData;
 
+    glm::vec3 lightPosition(0.0f, 0.0f, 0.0f);
     _mtx.lock();
     for (const auto& [id, data]: bodies) {
         DrawSphere(data, _camera, vertexData, elementData, 1.0f, 1.0f, 1.0f);
+        if (data.luminosity == 1.0f) {
+            lightPosition.x = (float)data.x;
+            lightPosition.y = (float)data.y;
+            lightPosition.z = (float)data.z;
+        }
     }
 
     glm::vec3 camPosition(_camera.x, _camera.y, _camera.z);
@@ -390,9 +405,7 @@ int Window::DrawFrame(const Universe& universe) {
     _mtx.unlock();
 
     float nearPlane = 0.1f;
-    // set this back to <= 1000 once properly scaling distances
-    // it is set this high to test the solar system
-    float farPlane = 10000.0f;
+    float farPlane = 1000.0f;
 
     glm::mat4 viewMatrix(1.0f);
     viewMatrix = glm::lookAt(camPosition, camPosition + camFront, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -403,6 +416,9 @@ int Window::DrawFrame(const Universe& universe) {
     projectionMatrix = glm::perspective(glm::radians(_fov), (float)_horRes / (float)_vertRes, nearPlane, farPlane);
     auto projectionMatrixLocation = glGetUniformLocation(_shaderProgram, "projectionMatrix");
     glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+    auto lightPosLocation = glGetUniformLocation(_shaderProgram, "lightPos");
+    glUniform3fv(lightPosLocation, 1, glm::value_ptr(lightPosition));
 
     // copy vertex data into buffer
     glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(float), vertexData.data(), GL_STREAM_DRAW);
