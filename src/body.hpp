@@ -5,7 +5,6 @@
 #include <string>
 
 struct Body {
-    std::string name;
     // m
     double x;
     // m
@@ -24,13 +23,15 @@ struct Body {
     double mass;
     // W
     double luminosity;
+    // color
+    float red, green, blue;
 
     Body() {
-        name = "";
-        x, y, z = 0.0;
-        xVel, yVel, zVel = 0.0;
-        radius, mass = 0.0;
+        x = 0.0, y = 0.0, z = 0.0;
+        xVel = 0.0, yVel = 0.0, zVel = 0.0;
+        radius = 0.0, mass = 0.0;
         luminosity = 0.1;
+        red = 1.0f, green = 1.0f, blue = 1.0f;
     }
 };
 

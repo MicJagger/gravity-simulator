@@ -292,7 +292,7 @@ inline void AddValues(std::vector<unsigned int>& elementData, const unsigned int
     elementData.push_back(f2);
 }
 
-void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vertexData, std::vector<unsigned int>& elementData, const float& red, const float& green, const float& blue) {
+void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vertexData, std::vector<unsigned int>& elementData) {
     // tracks initial vertexData size to offset indices
     int elementStart = vertexData.size() / vertexFloatWidth;
     int elementIndexStart = elementData.size();
@@ -312,7 +312,7 @@ void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vert
     // vertexData
     // top
     AddValues(vertexData, x, y, z + radius); // position
-    AddValues(vertexData, 1.0 - red, 1.0f - green, 1.0f - blue); // color (inverted)
+    AddValues(vertexData, 1.0 - body.red, 1.0f - body.green, 1.0f - body.blue); // color (inverted)
     vertexData.push_back(0.0f); // tex.x
     vertexData.push_back(0.0f); // tex.y
     vertexData.push_back((float)body.luminosity); // minBrightness
@@ -327,7 +327,7 @@ void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vert
             dx = radius * dxn;
             dy = radius * dyn;
             AddValues(vertexData, x + dx, y + dy, z + dz); // position
-            AddValues(vertexData, red, green, blue); // color
+            AddValues(vertexData, body.red, body.green, body.blue); // color
             vertexData.push_back(0.0f); // tex.x
             vertexData.push_back(0.0f); // tex.y
             vertexData.push_back((float)body.luminosity); // minBrightness
@@ -336,7 +336,7 @@ void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vert
     }
     // bottom
     AddValues(vertexData, x, y, z - radius); // position
-    AddValues(vertexData, 1.0 - red, 1.0f - green, 1.0f - blue); // color (inverted)
+    AddValues(vertexData, 1.0 - body.red, 1.0f - body.green, 1.0f - body.blue); // color (inverted)
     vertexData.push_back(0.0f); // tex.x
     vertexData.push_back(0.0f); // tex.y
     vertexData.push_back((float)body.luminosity); // minBrightness
@@ -385,14 +385,14 @@ int Window::DrawFrame(const Universe& universe) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    const std::map<long long, Body> bodies = universe.GetBodies();
+    const auto bodies = universe.GetBodies();
     std::vector<float> vertexData;
     std::vector<unsigned int> elementData;
 
     glm::vec3 lightPosition(0.0f, 0.0f, 0.0f);
     _mtx.lock();
     for (const auto& [id, data]: bodies) {
-        DrawSphere(data, _camera, vertexData, elementData, 1.0f, 1.0f, 1.0f);
+        DrawSphere(data, _camera, vertexData, elementData);
         if (data.luminosity == 1.0f) {
             lightPosition.x = (float)data.x;
             lightPosition.y = (float)data.y;

@@ -22,11 +22,12 @@ inline int Accelerate(Body& obj1, const Body& obj2, const double& tickspeedFacto
     double distanceSquared = (dx * dx) + (dy * dy) + (dz * dz);
     double distance = sqrt(distanceSquared);
     double acceleration = CalculateAcceleration(obj2.mass, distanceSquared, cScaling) * gravityScaling;
-    double accelerationFraction = tickspeedFactor * acceleration;
+    double accelerationFraction = tickspeedFactor * acceleration / distance;
+    // TODO: adjust acceleration/velocity based on relativity
     if (fabs(distance) > 1e-4) {
-        obj1.xVel += accelerationFraction * (dx / distance);
-        obj1.yVel += accelerationFraction * (dy / distance);
-        obj1.zVel += accelerationFraction * (dz / distance);
+        obj1.xVel += accelerationFraction * dx;
+        obj1.yVel += accelerationFraction * dy;
+        obj1.zVel += accelerationFraction * dz;
     }
     return SUCCESS;
 }
@@ -64,7 +65,7 @@ Universe::Universe() {
 
 // 
 
-const std::map<long long, Body>& Universe::GetBodies() const {
+const std::map<std::string, Body>& Universe::GetBodies() const {
     return _bodies;
 }
 
@@ -91,12 +92,11 @@ const bool& Universe::IsPaused() const {
 
 // 
 
-int Universe::AddBody(const Body& body) {
+int Universe::AddBody(const std::string& name, const Body& body) {
     _mtx.lock();
-    _bodies.emplace(_highestId, body);
-    _highestId++;
+    _bodies.emplace(name, body);
     _mtx.unlock();
-    std::cout << "Added body: ID " << _highestId - 1 << "\n";
+    std::cout << "Added body: " << name << "\n";
     return SUCCESS;
 }
 

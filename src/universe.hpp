@@ -4,14 +4,14 @@
 
 #include <map>
 #include <mutex>
+#include <string>
 
 #include "body.hpp"
 #include "definitions.hpp"
 #include "time.hpp"
 
 class Universe {
-    long long _highestId = 0;
-    std::map<long long, Body> _bodies;
+    std::map<std::string, Body> _bodies;
     std::mutex _mtx;
 
     double _tickSpeed;
@@ -28,7 +28,7 @@ public:
 
     // getters
 
-    const std::map<long long, Body>& GetBodies() const;
+    const std::map<std::string, Body>& GetBodies() const;
     const double& GetTickSpeed() const;
     const double& GetTimeScaling() const;
     const double& GetGravityScaling() const;
@@ -38,7 +38,7 @@ public:
 
     // setters / manipulators
 
-    int AddBody(const Body& body);
+    int AddBody(const std::string& name, const Body& body);
     int SetTickSpeed(const double& tickSpeed);
     int SetTimeScaling(const double& timeScaling);
     int SetGravityScaling(const double& gravityScaling);
