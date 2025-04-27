@@ -118,6 +118,11 @@ int main(int argc, char* argv[]) {
         for (int key: keys) {
             switch (key) {
                 case 'w':
+                    if (window.CameraLocked()) {
+                        window.ChangeCameraBodyDistance(-tickMove);
+                        break;
+                    }
+
                     if (left || right) {
                         window.MoveCamera(sqrt2o2 * tickMove, 0.0, 0.0);
                     }
@@ -126,6 +131,11 @@ int main(int argc, char* argv[]) {
                     }
                     break;
                 case 's':
+                    if (window.CameraLocked()) {
+                        window.ChangeCameraBodyDistance(tickMove);
+                        break;
+                    }
+
                     if (left || right) {
                         window.MoveCamera(sqrt2o2 * -tickMove, 0.0, 0.0);
                     }
@@ -134,6 +144,10 @@ int main(int argc, char* argv[]) {
                     }
                     break;
                 case 'a':
+                    if (window.CameraLocked()) {
+                        break;
+                    }
+
                     if (forward || back) {
                         window.MoveCamera(0.0, sqrt2o2 * -tickMove, 0.0);
                     }
@@ -142,6 +156,10 @@ int main(int argc, char* argv[]) {
                     }
                     break;
                 case 'd':
+                    if (window.CameraLocked()) {
+                        break;
+                    }
+
                     if (forward || back) {
                         window.MoveCamera(0.0, sqrt2o2 * tickMove, 0.0);
                     }
@@ -150,9 +168,17 @@ int main(int argc, char* argv[]) {
                     }
                     break;
                 case SDLK_SPACE:
+                    if (window.CameraLocked()) {
+                        break;
+                    }
+
                     window.MoveCamera(0.0, 0.0, tickMove);
                     break;
                 case SDLK_LCTRL:
+                    if (window.CameraLocked()) {
+                        break;
+                    }
+
                     window.MoveCamera(0.0, 0.0, -tickMove);
                     break;
                 case SDLK_UP:

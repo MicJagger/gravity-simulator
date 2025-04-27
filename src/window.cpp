@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <map>
+#include <string>
 #include <vector>
 
 #include "external/glm/glm/glm.hpp"
@@ -14,7 +15,7 @@
 #include "body.hpp"
 #include "definitions.hpp"
 
-// POS.X, POS.Y, POS.Z, COLOR.R, COLOR.G, COLOR.B, TEX.X, TEX.Y, NORMAL.X, NORMAL.Y, NORMAL.Z
+// POS.X, POS.Y, POS.Z, COLOR.R, COLOR.G, COLOR.B, TEX.X, TEX.Y, LUMINOSITY, NORMAL.X, NORMAL.Y, NORMAL.Z
 constexpr int vertexFloatWidth = 12;
 
 constexpr const char* vertexShaderSource = R"(
@@ -221,8 +222,15 @@ int Window::SetupOpenGL() {
     return SUCCESS;
 }
 
-const Camera& Window::GetCamera() {
+const Camera& Window::GetCamera() const {
     return _camera;
+}
+
+bool Window::CameraLocked() const {
+    if (_camera.bodyName == "") {
+        return false;
+    }
+    return true;
 }
 
 std::vector<SDL_Event> Window::PollEvent() {
@@ -234,39 +242,47 @@ std::vector<SDL_Event> Window::PollEvent() {
 }
 
 int Window::SetCameraPosition(const double& x, const double& y, const double& z) {
+    _mtx.lock();
     _camera.x = x;
     _camera.y = y;
     _camera.z = z;
+    _mtx.unlock();
     return SUCCESS;
 }
 
 int Window::SetCameraAngle(const float& theta, const float& phi, const float& psi) {
+    _mtx.lock();
     _camera.theta = fmod(theta, 360.0f);
     _camera.phi = fmod(phi, 360.0f);
     _camera.psi = fmod(psi, 360.0f);
+    _mtx.unlock();
     return SUCCESS;
 }
 
 int Window::ChangeCameraPosition(const double& x, const double& y, const double& z) {
+    _mtx.lock();
     _camera.x += x;
     _camera.y += y;
     _camera.z += z;
+    _mtx.unlock();
     return SUCCESS;
 }
 
 int Window::ChangeCameraAngle(const float& theta, const float& phi, const float& psi) {
     _camera.theta = fmod(_camera.theta + theta, 360.0f);
     float newPhi = _camera.phi + phi;
+    _mtx.lock();
     if (newPhi > 180) {
-        _camera.phi = 179.999f;
+        _camera.phi = 179.9f;
     }
     else if (newPhi < 0) {
-        _camera.phi = 0.001f;
+        _camera.phi = 0.1f;
     }
     else {
         _camera.phi = newPhi;
     }
     _camera.psi = fmod(_camera.psi + psi, 360.0f);
+    _mtx.unlock();
     return SUCCESS;
 }
 
@@ -274,9 +290,63 @@ int Window::MoveCamera(const double& forward, const double& right, const double&
     float theta = glm::radians(_camera.theta);
     float x = cos(theta);
     float y = sin(theta);
+    _mtx.lock();
     _camera.x += (forward * x) + (right * y);
     _camera.y += (forward * y) - (right * x);
     _camera.z += up;
+    _mtx.unlock();
+    return SUCCESS;
+}
+
+int Window::LockCamera(const std::string& bodyName) {
+    if (bodyName == "") {
+        return FAIL;
+    }
+    _mtx.lock();
+    _camera.bodyName = bodyName;
+    _mtx.unlock();
+    return SUCCESS;
+}
+
+int Window::LockCamera(const std::string& bodyName, const Body& body) {
+    if (bodyName == "") {
+        return FAIL;
+    }
+    _mtx.lock();
+    _camera.bodyName = bodyName;
+    _camera.bodyDistance = body.radius * 5;
+    _mtx.unlock();
+    return SUCCESS;
+}
+
+int Window::UnlockCamera() {
+    _mtx.lock();
+    if (_camera.bodyName == "") {
+        _mtx.unlock();
+        return FAIL;
+    }
+    _camera.bodyName = "";
+    _mtx.unlock();
+    return SUCCESS;
+}
+
+int Window::SetCameraBodyDistance(const double& distance) {
+    if (distance < 0) {
+        return FAIL;
+    }
+    _mtx.lock();
+    _camera.bodyDistance = distance;
+    _mtx.unlock();
+    return SUCCESS;
+}
+
+int Window::ChangeCameraBodyDistance(const double& forward) {
+    _mtx.lock();
+    _camera.bodyDistance += forward;
+    if (_camera.bodyDistance < 0) {
+        _camera.bodyDistance = 0;
+    }
+    _mtx.unlock();
     return SUCCESS;
 }
 
@@ -292,7 +362,7 @@ inline void AddValues(std::vector<unsigned int>& elementData, const unsigned int
     elementData.push_back(f2);
 }
 
-void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vertexData, std::vector<unsigned int>& elementData) {
+inline void DrawSphere(const Body& body, const Camera& camera, std::vector<float>& vertexData, std::vector<unsigned int>& elementData) {
     // tracks initial vertexData size to offset indices
     int elementStart = vertexData.size() / vertexFloatWidth;
     int elementIndexStart = elementData.size();
@@ -389,19 +459,34 @@ int Window::DrawFrame(const Universe& universe) {
     std::vector<float> vertexData;
     std::vector<unsigned int> elementData;
 
-    glm::vec3 lightPosition(0.0f, 0.0f, 0.0f);
-    _mtx.lock();
-    for (const auto& [id, data]: bodies) {
-        DrawSphere(data, _camera, vertexData, elementData);
-        if (data.luminosity == 1.0f) {
-            lightPosition.x = (float)data.x;
-            lightPosition.y = (float)data.y;
-            lightPosition.z = (float)data.z;
-        }
-    }
-
     glm::vec3 camPosition(_camera.x, _camera.y, _camera.z);
     glm::vec3 camFront(AngleToVector(_camera.theta, _camera.phi, _camera.psi));
+    glm::vec3 lightPosition(0.0f, 0.0f, 0.0f);
+    _mtx.lock();
+    for (const auto& [id, body]: bodies) {
+        DrawSphere(body, _camera, vertexData, elementData);
+        if (body.luminosity == 1.0f) {
+            lightPosition.x = (float)body.x;
+            lightPosition.y = (float)body.y;
+            lightPosition.z = (float)body.z;
+        }
+        // if camera is locked to body
+        if (id == _camera.bodyName) {
+            double cdx = -camFront.x * _camera.bodyDistance;
+            double cdy = -camFront.y * _camera.bodyDistance;
+            double cdz = -camFront.z * _camera.bodyDistance;
+            double newX = body.x + cdx;
+            double newY = body.y + cdy;
+            double newZ = body.z + cdz;
+            
+            _camera.x = newX;
+            _camera.y = newY;
+            _camera.z = newZ;
+            camPosition.x = newX;
+            camPosition.y = newY;
+            camPosition.z = newZ;
+        }
+    }
     _mtx.unlock();
 
     float nearPlane = 0.1f;

@@ -3,6 +3,7 @@
 #define _WINDOW_HPP
 
 #include <mutex>
+#include <string>
 #include <vector>
 
 #include "external/include_sdl.hpp"
@@ -45,7 +46,8 @@ public:
     int SetupOpenGL();
 
     // getters
-    const Camera& GetCamera();
+    const Camera& GetCamera() const;
+    bool CameraLocked() const;
 
     // setters
 
@@ -62,6 +64,14 @@ public:
     int ChangeCameraAngle(const float& theta, const float& phi, const float& psi);
 
     int MoveCamera(const double& forward, const double& right, const double& up);
+
+    // locking
+
+    int LockCamera(const std::string& bodyName);
+    int LockCamera(const std::string& bodyName, const Body& body);
+    int UnlockCamera();
+    int SetCameraBodyDistance(const double& distance);
+    int ChangeCameraBodyDistance(const double& forward);
 
     // draw current frame
     int DrawFrame(const Universe& universe);

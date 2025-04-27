@@ -93,6 +93,10 @@ const bool& Universe::IsPaused() const {
 // 
 
 int Universe::AddBody(const std::string& name, const Body& body) {
+    if (name == "") {
+        std::cout << "Name must not be empty\n";
+        return FAIL;
+    }
     _mtx.lock();
     _bodies.emplace(name, body);
     _mtx.unlock();

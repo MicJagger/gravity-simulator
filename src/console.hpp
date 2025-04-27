@@ -97,7 +97,7 @@ inline int RunCommand(int& sigIn, int& sigOut, const std::vector<std::string>& a
         "add - add a new body (further prompts)\n"
         "clear - remove all bodies\n"
         "get - print values of objects or settings\n"
-        "lock - lock the camera relative to a body\n";
+        "lock [body] - lock the camera relative to a body\n";
         "pause - pause universe\n"
         "quit - end program\n"
         "remove [name] - remove a body\n"
@@ -136,7 +136,15 @@ inline int RunCommand(int& sigIn, int& sigOut, const std::vector<std::string>& a
     }
 
     else if (args[0] == "lock") {
-        std::cout << "WIP\n";
+        if (args.size() != 2) {
+            InvalidArgCount(args.size(), 2);
+            return FAIL;
+        }
+        if (window.LockCamera(args[1], universe.GetBodies().at(args[1])) == FAIL) {
+            std::cout << "Cannot lock camera to this body\n";
+            return FAIL;
+        }
+        std::cout << "locked\n";
     }
 
     else if (args[0] == "pause") {
@@ -164,6 +172,7 @@ inline int RunCommand(int& sigIn, int& sigOut, const std::vector<std::string>& a
     else if (args[0] == "remove") {
         if (args.size() != 2) {
             InvalidArgCount(args.size(), 2);
+            return FAIL;
         }
         universe.RemoveBody(args[1]);
     }
@@ -188,11 +197,20 @@ inline int RunCommand(int& sigIn, int& sigOut, const std::vector<std::string>& a
         }
         if (Get(args, universe, window) <= FAIL) {
             std::cout << "aborting command\n";
+            return FAIL;
         }
     }
 
     else if (args[0] == "unlock") {
-        std::cout << "WIP\n";
+        if (args.size() != 1) {
+            InvalidArgCount(args.size(), 1);
+            return FAIL;
+        }
+        if (window.UnlockCamera() <= FAIL) {
+            std::cout << "camera not locked\n";
+            return FAIL;
+        }
+        std::cout << "camera unlocked\n";
     }
 
     else {
