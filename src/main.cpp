@@ -18,7 +18,7 @@ void PhysicsThread(int& sigIn, int& sigOut, Universe& universe);
 // handles drawing of the frames
 void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window);
 
-void SpawnSolarSystemScaled(Universe& universe, double& scaleValue, double& radiusScale);
+void SpawnSolarSystemScaled(Universe& universe, const double& scaleValue, const double& radiusScale, const double& sunRadiusScale);
 
 // handles user inputs
 int main(int argc, char* argv[]) {
@@ -44,8 +44,8 @@ int main(int argc, char* argv[]) {
     universe.SetGravityScaling(1);
 
     double scale = 1e-9;
-    double radiusScale = 40.0;
-    SpawnSolarSystemScaled(universe, scale, radiusScale);
+    double radiusScale = 100.0;
+    SpawnSolarSystemScaled(universe, scale, radiusScale, 0.1);
 
     double cameraSpeed = c * scale * 1000;
     double cameraRotationSpeed = 120.0;
@@ -237,7 +237,7 @@ void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
 
 // testing / example
 
-void SpawnSolarSystemScaled(Universe& universe, double& scaleValue, double& radiusScale) {
+void SpawnSolarSystemScaled(Universe& universe, const double& scaleValue, const double& radiusScale, const double& sunRadiusScale) {
     std::mutex mtx;
     mtx.lock();
 
@@ -247,86 +247,96 @@ void SpawnSolarSystemScaled(Universe& universe, double& scaleValue, double& radi
     // mass is scaled^3 to account for gravity being 1/r^2 and distance being r * scale
     double massScaling = scaleValue * scaleValue * scaleValue;
     // sun
-    body.radius = sunRadius * scaleValue * radiusScale;
+    body.name = "sol";
+    body.radius = sunRadius * scaleValue * radiusScale / 10;
     body.mass = sunMass * massScaling;
     body.x = -sunDistance * scaleValue;
     body.yVel = sunVelocity * scaleValue;
     body.luminosity = 1.0;
-    universe.AddBody("sol", body);
+    universe.AddBody(body.name, body);
     
     body.luminosity = 0.2f;
 
     // mercury
+    body.name = "mercury";
     body.radius = mercuryRadius * scaleValue * radiusScale;
     body.mass = mercuryMass * massScaling;
     body.x = -mercuryDistance * scaleValue;
     body.yVel = mercuryVelocity * scaleValue;
     body.red = 0.8f, body.green = 0.8f, body.blue = 0.8f;
-    universe.AddBody("mercury", body);
+    universe.AddBody(body.name, body);
 
     // venus
+    body.name = "venus";
     body.radius = venusRadius * scaleValue * radiusScale;
     body.mass = venusMass * massScaling;
     body.x = -venusDistance * scaleValue;
     body.yVel = venusVelocity * scaleValue;
     body.red = 0.82f, body.green = 0.57f, body.blue = 0.21f;
-    universe.AddBody("venus", body);
+    universe.AddBody(body.name, body);
 
     // earth
+    body.name = "earth";
     body.radius = earthRadius * scaleValue * radiusScale;
     body.mass = earthMass * massScaling;
     body.x = -earthDistance * scaleValue;
     body.yVel = earthVelocity * scaleValue;
     body.red = 0.2f, body.green = 0.24f, body.blue = 0.55f;
-    universe.AddBody("earth", body);
+    universe.AddBody(body.name, body);
 
     // moon
+    body.name = "luna";
     body.radius = moonRadius * scaleValue * radiusScale;
     body.mass = moonMass * massScaling;
     body.x = -(earthDistance + moonDistance) * scaleValue;
     body.yVel = (earthVelocity + moonVelocity) * scaleValue;
     body.red = 0.8f, body.green = 0.8f, body.blue = 0.8f;
-    universe.AddBody("luna", body);
+    universe.AddBody(body.name, body);
 
     // mars
+    body.name = "mars";
     body.radius = marsRadius * scaleValue * radiusScale;
     body.mass = marsMass * massScaling;
     body.x = -marsDistance * scaleValue;
     body.yVel = marsVelocity * scaleValue;
     body.red = 0.82f, body.green = 0.54f, body.blue = 0.39f;
-    universe.AddBody("mars", body);
+    universe.AddBody(body.name, body);
 
     // jupiter
+    body.name = "jupiter";
     body.radius = jupiterRadius * scaleValue * radiusScale;
     body.mass = jupiterMass * massScaling;
     body.x = -jupiterDistance * scaleValue;
     body.yVel = jupiterVelocity * scaleValue;
     body.red = 0.67f, body.green = 0.52f, body.blue = 0.42f;
-    universe.AddBody("jupiter", body);
+    universe.AddBody(body.name, body);
 
     // saturn
+    body.name = "saturn";
     body.radius = saturnRadius * scaleValue * radiusScale;
     body.mass = saturnMass * massScaling;
     body.x = -saturnDistance * scaleValue;
     body.yVel = saturnVelocity * scaleValue;
     body.red = 0.93f, body.green = 0.74f, body.blue = 0.51f;
-    universe.AddBody("saturn", body);
+    universe.AddBody(body.name, body);
 
     // uranus
+    body.name = "uranus";
     body.radius = uranusRadius * scaleValue * radiusScale;
     body.mass = uranusMass * massScaling;
     body.x = -uranusDistance * scaleValue;
     body.yVel = uranusVelocity * scaleValue;
     body.red = 0.85f, body.green = 0.99f, body.blue = 0.99f;
-    universe.AddBody("uranus", body);
+    universe.AddBody(body.name, body);
 
     // neptune
+    body.name = "neptune";
     body.radius = neptuneRadius * scaleValue * radiusScale;
     body.mass = neptuneMass * massScaling;
     body.x = -neptuneDistance * scaleValue;
     body.yVel = neptuneVelocity * scaleValue;
     body.red = 0.27f, body.green = 0.44f, body.blue = 0.99f;
-    universe.AddBody("neptune", body);
+    universe.AddBody(body.name, body);
 
     mtx.unlock();
 }

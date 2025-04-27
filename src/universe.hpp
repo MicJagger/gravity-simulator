@@ -39,6 +39,8 @@ public:
     // setters / manipulators
 
     int AddBody(const std::string& name, const Body& body);
+    int RemoveBody(const std::string& name);
+    int ClearBodies();
     int SetTickSpeed(const double& tickSpeed);
     int SetTimeScaling(const double& timeScaling);
     int SetGravityScaling(const double& gravityScaling);

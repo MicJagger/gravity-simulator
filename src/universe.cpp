@@ -7,7 +7,7 @@
 #include "definitions.hpp"
 #include "values.hpp"
 
-inline double CalculateAcceleration(const double& mass, const double& distanceSquared, const double& cScaling) {
+inline double CalculateGravitationalAcceleration(const double& mass, const double& distanceSquared, const double& cScaling) {
     double distance = sqrt(distanceSquared);
     double G2oc2Scaled = G2oc2 / (cScaling * cScaling); // 1 / c^2 -> 1 / cScaling^2
     double relativity = 1.0 / sqrt(1.0 - (G2oc2Scaled * mass / distance));
@@ -21,10 +21,10 @@ inline int Accelerate(Body& obj1, const Body& obj2, const double& tickspeedFacto
     double dz = obj2.z - obj1.z;
     double distanceSquared = (dx * dx) + (dy * dy) + (dz * dz);
     double distance = sqrt(distanceSquared);
-    double acceleration = CalculateAcceleration(obj2.mass, distanceSquared, cScaling) * gravityScaling;
+    double acceleration = CalculateGravitationalAcceleration(obj2.mass, distanceSquared, cScaling) * gravityScaling;
     double accelerationFraction = tickspeedFactor * acceleration / distance;
     // TODO: adjust acceleration/velocity based on relativity
-    if (fabs(distance) > 1e-4) {
+    if (fabs(distance) > 1e-18) {
         obj1.xVel += accelerationFraction * dx;
         obj1.yVel += accelerationFraction * dy;
         obj1.zVel += accelerationFraction * dz;
@@ -100,6 +100,24 @@ int Universe::AddBody(const std::string& name, const Body& body) {
     return SUCCESS;
 }
 
+int Universe::RemoveBody(const std::string &name) {
+    _mtx.lock();
+    if (_bodies.find(name) == _bodies.end()) {
+        _mtx.unlock();
+        return FAIL;
+    }
+    _bodies.erase(name);
+    _mtx.unlock();
+    return SUCCESS;
+}
+
+int Universe::ClearBodies() {
+    _mtx.lock();
+    _bodies.clear();
+    _mtx.unlock();
+    return SUCCESS;
+}
+
 int Universe::SetTickSpeed(const double& tickSpeed) {
     if (tickSpeed <= 0) {
         return FAIL;
@@ -162,16 +180,16 @@ int Universe::CalculateTick() {
     _mtx.lock();
     double tickspeedFactor = _timeScaling * 1.0 / _tickSpeed;
     // move positions
-    for (auto& [id, obj]: _bodies) {
+    for (auto& [name, obj]: _bodies) {
         obj.x += obj.xVel * tickspeedFactor;
         obj.y += obj.yVel * tickspeedFactor;
         obj.z += obj.zVel * tickspeedFactor;
     }
     // calculate accelerations
-    for (auto& [id1, obj1]: _bodies) {
-        for (auto& [id2, obj2]: _bodies) {
+    for (auto& [name1, obj1]: _bodies) {
+        for (auto& [name2, obj2]: _bodies) {
             // if the same body, skip
-            if (id1 == id2) {
+            if (name1 == name2) {
                 continue;
             }
             Accelerate(obj1, obj2, tickspeedFactor, _gravityScaling, _cScaling);
