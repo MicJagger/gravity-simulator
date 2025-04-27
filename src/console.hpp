@@ -97,7 +97,7 @@ inline int RunCommand(int& sigIn, int& sigOut, const std::vector<std::string>& a
         "add - add a new body (further prompts)\n"
         "clear - remove all bodies\n"
         "get - print values of objects or settings\n"
-        "lock [body] - lock the camera relative to a body\n";
+        "lock [body] - lock the camera relative to a body\n"
         "pause - pause universe\n"
         "quit - end program\n"
         "remove [name] - remove a body\n"
