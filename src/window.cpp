@@ -233,6 +233,48 @@ bool Window::CameraLocked() const {
     return true;
 }
 
+const double& Window::GetCameraSpeed() const {
+    return _camera.speed;
+}
+
+const double& Window::GetCameraRotationSpeed() const {
+    return _camera.rotationSpeed;
+}
+
+const double& Window::GetCameraSensitivity() const {
+    return _camera.sensitivity;
+}
+
+int Window::SetCameraSpeed(const double& speed) {
+    if (speed < 0.0) {
+        return FAIL;
+    }
+    _mtx.lock();
+    _camera.speed = speed;
+    _mtx.unlock();
+    return SUCCESS;
+}
+
+int Window::SetCameraRotationSpeed(const double& rotationSpeed) {
+    if (rotationSpeed < 0.0) {
+        return FAIL;
+    }
+    _mtx.lock();
+    _camera.rotationSpeed = rotationSpeed;
+    _mtx.unlock();
+    return SUCCESS;
+}
+
+int Window::SetCameraSensitivity(const double& sensitivity) {
+    if (sensitivity < 0.0) {
+        return FAIL;
+    }
+    _mtx.lock();
+    _camera.sensitivity = sensitivity;
+    _mtx.unlock();
+    return SUCCESS;
+}
+
 std::vector<SDL_Event> Window::PollEvent() {
     std::vector<SDL_Event> events;
     while (SDL_PollEvent(&_windowEvent)) {

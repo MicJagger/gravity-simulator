@@ -23,7 +23,7 @@ struct Body {
     // kg
     double mass;
     // W
-    double luminosity;
+    float luminosity;
     // color
     float red, green, blue;
 

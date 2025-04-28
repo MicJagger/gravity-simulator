@@ -17,6 +17,12 @@ struct Camera {
     float phi;
     // degrees - spin
     float psi;
+    // m / s
+    double speed;
+    // d / s
+    double rotationSpeed;
+    // d / p
+    double sensitivity;
 
     // locked to
     std::string bodyName;
@@ -28,6 +34,7 @@ struct Camera {
         theta = 90;
         phi = 90;
         psi = 0;
+        speed = 1.0, rotationSpeed = 1.0, sensitivity = 1.0;
         bodyName = "";
         bodyDistance = 0.0;
     }

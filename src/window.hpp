@@ -48,9 +48,15 @@ public:
     // getters
     const Camera& GetCamera() const;
     bool CameraLocked() const;
+    const double& GetCameraSpeed() const;
+    const double& GetCameraRotationSpeed() const;
+    const double& GetCameraSensitivity() const;
 
     // setters
 
+    int SetCameraSpeed(const double& speed);
+    int SetCameraRotationSpeed(const double& rotationSpeed);
+    int SetCameraSensitivity(const double& sensitivity);
 
     // poll for inputs / events
     std::vector<SDL_Event> PollEvent();

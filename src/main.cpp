@@ -47,8 +47,9 @@ int main(int argc, char* argv[]) {
     double radiusScale = 100.0;
     SpawnSolarSystemScaled(universe, scale, radiusScale, 0.1);
 
-    double cameraSpeed = c * scale * 1000;
-    double cameraRotationSpeed = 120.0;
+    window.SetCameraSpeed(c * scale * 1000);
+    window.SetCameraRotationSpeed(120.0);
+    window.SetCameraSensitivity(0.1);
 
     int key;
     std::set<int> keys;
@@ -85,6 +86,9 @@ int main(int argc, char* argv[]) {
                         case 'd':
                             right = true;
                             break;
+                        case SDLK_ESCAPE:
+                            SDL_SetRelativeMouseMode(SDL_FALSE);
+                            break;
                     }
                     break;
                 case SDL_KEYUP:
@@ -105,18 +109,34 @@ int main(int argc, char* argv[]) {
                             break;
                     }
                     break;
+                case SDL_MOUSEMOTION:
+                    if (SDL_GetRelativeMouseMode()) {
+                        window.ChangeCameraAngle(-(double)event.motion.xrel * window.GetCameraSensitivity(), 
+                        (double)event.motion.yrel * window.GetCameraSensitivity(), 0.0);
+                    }
+                    break;
                 case SDL_MOUSEBUTTONDOWN:
+                    SDL_SetRelativeMouseMode(SDL_TRUE);
                     break;
                 case SDL_MOUSEBUTTONUP:
+                    break;
+                case SDL_MOUSEWHEEL:
+                    if (event.wheel.y < 0) {
+                        window.SetCameraSpeed(window.GetCameraSpeed() / 2.0);
+                    }
+                    else {// if (event.wheel.y > 0) {
+                        window.SetCameraSpeed(window.GetCameraSpeed() * 2.0);
+                    }
                     break;
             }
         }
 
         mtx.lock();
-        double tickMove = cameraSpeed / time.GetTickSpeed();
-        double tickRotate = cameraRotationSpeed / time.GetTickSpeed();
+        double tickMove = window.GetCameraSpeed() / time.GetTickSpeed();
+        double tickRotate = window.GetCameraRotationSpeed() / time.GetTickSpeed();
         for (int key: keys) {
             switch (key) {
+                // horizontal
                 case 'w':
                     if (window.CameraLocked()) {
                         window.ChangeCameraBodyDistance(-tickMove);
@@ -167,6 +187,7 @@ int main(int argc, char* argv[]) {
                         window.MoveCamera(0.0, tickMove, 0.0);
                     }
                     break;
+                // vertical
                 case SDLK_SPACE:
                     if (window.CameraLocked()) {
                         break;
@@ -181,6 +202,7 @@ int main(int argc, char* argv[]) {
 
                     window.MoveCamera(0.0, 0.0, -tickMove);
                     break;
+                // rotation
                 case SDLK_UP:
                     window.ChangeCameraAngle(0.0f, -tickRotate, 0.0f);
                     break;
@@ -250,6 +272,7 @@ void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
         sigOut = failVal;
         return;
     }
+    window.time.SetTickSpeed(60);
     while (true) {
         window.time.TickStart();
         window.DrawFrame(universe);

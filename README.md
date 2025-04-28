@@ -24,7 +24,12 @@ Once running, the program launches 4 threads:
 * Render
 * Console
 
-Within the main window, use WASD to move around in the XY plane, SPACE/LCTRL to move in the Z plane, and the arrow keys to change viewing angle (will likely be changed to mouse).
+Controls:
+* WASD to move around in the XY plane
+* SPACE/LCTRL to move in the Z plane
+* Mouse to look around (alternatively, can use arrow keys)
+* Scroll wheel to increase / decrease camera speed
+* ESCAPE to release the mouse and control of the window
 
 In the terminal, type ``help`` to see a list of commands.
 
