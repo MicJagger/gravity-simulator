@@ -2,6 +2,7 @@
 #ifndef _CONSOLE_HPP
 #define _CONSOLE_HPP
 
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -126,8 +127,8 @@ inline int RunCommand(int& sigIn, int& sigOut, const std::vector<std::string>& a
     }
 
     else if (args[0] == "get") {
-        if (args.size() > 2) {
-            InvalidArgCount(args.size(), 1, 2);
+        if (args.size() > 3) {
+            InvalidArgCount(args.size(), 1, 3);
             return FAIL;
         }
         if (Get(args, universe, window) <= FAIL) {
@@ -333,71 +334,92 @@ inline void FailedConversion() {
 }
 
 inline int Get(const std::vector<std::string>& args, Universe& universe, Window& window) {
-    std::string choice;
+    std::string tempInput;
+    std::vector<std::string> input;
     if (args.size() == 1) {
         std::cout << "choices: "
         "bodies\n"
         "body [name]\n"
         "camera\n"
-        "cameraSpeed\n"
         "cScaling\n"
         "gravityScaling\n"
         "isPaused\n"
         "targetFramerate\n"
         "tickSpeed\n"
-        "timeScaling\n";
-        std::cin >> choice;
+        "timeScaling\n"
+        "input your selection: ";
+        std::getline(std::cin, tempInput);
+        input = SplitArguments(tempInput);
     }
     else {
-        choice = args[1];
+        for (int i = 1; i < args.size(); i++) {
+            input.push_back(args[i]);
+        }
     }
 
-    if (choice == "bodies") {
+    if (input[0] == "bodies") {
         const auto bodies = universe.GetBodies();
         for (const auto [name, data]: bodies) {
             std::cout << name << "\n";
         }
     }
 
-    else if (choice == "body") {
-        return FAIL;
+    else if (input[0] == "body") {
+        if (input.size() != 2) {
+            InvalidArgCount(input.size(), 2);
+            return FAIL;
+        }
+        const Body body = universe.GetBodies().at(input[1]);
+        std::cout << "Body: " << body.name << "\n"
+        "Coordinates: " << body.x << " " << body.y << " " << body.z << "\n"
+        "Directional Velocities: " << body.xVel << " " << body.yVel << " " << body.zVel << "\n"
+        "Velocity: " << sqrt((body.xVel * body.xVel) + (body.yVel * body.yVel) + (body.zVel * body.zVel)) << "\n"
+        "Radius: " << body.radius << "\n"
+        "Mass: " << body.mass << "\n"
+        "Luminosity: " << body.luminosity << "\n"
+        "Color: " << body.red << " " << body.green << " " << body.blue << "\n";
     }
 
-    else if (choice == "camera") {
+    else if (input[0] == "camera") {
         const Camera camera = window.GetCamera();
-        return FAIL;
+        std::cout << "Camera:\n"
+        "Coordinates: " << camera.x << " " << camera.y << " " << camera.z << "\n"
+        "Angles: theta:" << camera.theta << " phi:" << camera.phi << " psi:" << camera.psi << "\n"
+        "Movement Speed: " << camera.speed << "\n"
+        "Rotation Speed: " << camera.rotationSpeed << "\n"
+        "Sensitivity: " << camera.sensitivity << "\n";
+        if (camera.bodyName != "") {
+            std::cout << "Locked Body: " << camera.bodyName << "\n"
+            "Distance: " << camera.bodyDistance << "\n";
+        }
     }
 
-    else if (choice == "cameraSpeed") {
-        return FAIL;
-    }
-
-    else if (choice == "cScaling") {
+    else if (input[0] == "cScaling") {
         std::cout << "cScaling = " << universe.GetcScaling() << "\n";
     }
 
-    else if (choice == "gravityScaling") {
+    else if (input[0] == "gravityScaling") {
         std::cout << "gravityScaling = " << universe.GetGravityScaling() << "\n";
     }
 
-    else if (choice == "isPaused") {
+    else if (input[0] == "isPaused") {
         std::cout << "isPaused = " << universe.IsPaused() << "\n";
     }
 
-    else if (choice == "targetFramerate") {
+    else if (input[0] == "targetFramerate") {
         std::cout << "targetFramerate = " << window.time.GetTickSpeed() << "\n";
     }
 
-    else if (choice == "tickSpeed") {
+    else if (input[0] == "tickSpeed") {
         std::cout << "tickSpeed = " << universe.GetTickSpeed() << "\n";
     }
 
-    else if (choice == "timeScaling") {
+    else if (input[0] == "timeScaling") {
         std::cout << "timeScaling = " << universe.GetTimeScaling() << "\n";
     }
 
     else {
-        std::cout << "unrecognized\n";
+        std::cout << "unrecognized: " << input[0] << "\n";
         return FAIL;
     }
 
@@ -413,62 +435,68 @@ inline void InvalidArgCount(const int &found, const int &expectedLow, const int&
 }
 
 inline int Set(const std::vector<std::string>& args, Universe& universe, Window& window) {
-    std::string choice;
+    std::string tempInput;
+    std::vector<std::string> input;
     if (args.size() == 1) {
         std::cout << "choices: "
         "body [name]\n"
         "camera\n"
-        "cameraSpeed\n"
         "cScaling\n"
         "gravityScaling\n"
         "isPaused\n"
         "targetFramerate\n"
         "tickSpeed\n"
-        "timeScaling\n";
-        std::cin >> choice;
+        "timeScaling\n"
+        "input your selection: ";
+        std::getline(std::cin, tempInput);
+        input = SplitArguments(tempInput);
     }
     else {
-        choice = args[1];
+        for (int i = 1; i < args.size(); i++) {
+            input.push_back(args[i]);
+        }
     }
 
-    if (choice == "body") {
+    if (input[0] == "body") {
+        if (input.size() != 2) {
+            InvalidArgCount(input.size(), 2);
+            return FAIL;
+        }
+        //Body body = universe.GetBodiesMut().at(input[1]);
         return FAIL;
     }
 
-    else if (choice == "camera") {
+    else if (input[0] == "camera") {
+        const Camera camera = window.GetCamera();
         return FAIL;
     }
 
-    else if (choice == "cameraSpeed") {
+    else if (input[0] == "cScaling") {
         return FAIL;
     }
 
-    else if (choice == "cScaling") {
+    else if (input[0] == "gravityScaling") {
         return FAIL;
     }
 
-    else if (choice == "gravityScaling") {
+    else if (input[0] == "isPaused") {
         return FAIL;
     }
 
-    else if (choice == "isPaused") {
+    else if (input[0] == "targetFramerate") {
         return FAIL;
     }
 
-    else if (choice == "targetFramerate") {
+    else if (input[0] == "tickSpeed") {
         return FAIL;
     }
 
-    else if (choice == "tickSpeed") {
-        return FAIL;
-    }
-
-    else if (choice == "timeScaling") {
+    else if (input[0] == "timeScaling") {
         return FAIL;
     }
 
     else {
-        std::cout << "unrecognized\n";
+        std::cout << "unrecognized: " << input[0] << "\n";
         return FAIL;
     }
 
