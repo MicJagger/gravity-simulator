@@ -192,11 +192,11 @@ inline int RunCommand(int& sigIn, int& sigOut, const std::vector<std::string>& a
     }
 
     else if (args[0] == "set") {
-        if (args.size() > 6) {
-            InvalidArgCount(args.size(), 1, 6);
+        if (args.size() > 3) {
+            InvalidArgCount(args.size(), 1, 3);
             return FAIL;
         }
-        if (Get(args, universe, window) <= FAIL) {
+        if (Set(args, universe, window) <= FAIL) {
             std::cout << "aborting command\n";
             return FAIL;
         }
@@ -349,27 +349,31 @@ inline int Get(const std::vector<std::string>& args, Universe& universe, Window&
         "timeScaling\n"
         "input your selection: ";
         std::getline(std::cin, tempInput);
-        input = SplitArguments(tempInput);
-    }
-    else {
-        for (int i = 1; i < args.size(); i++) {
-            input.push_back(args[i]);
+        input = args;
+        for (auto i: SplitArguments(tempInput)) {
+            input.push_back(i);
         }
     }
+    else {
+        input = args;
+    }
 
-    if (input[0] == "bodies") {
+    if (input[1] == "bodies") {
         const auto bodies = universe.GetBodies();
         for (const auto [name, data]: bodies) {
             std::cout << name << "\n";
         }
     }
 
-    else if (input[0] == "body") {
-        if (input.size() != 2) {
-            InvalidArgCount(input.size(), 2);
+    else if (input[1] == "body") {
+        if (input.size() != 3) {
+            InvalidArgCount(input.size(), 3);
             return FAIL;
         }
-        const Body body = universe.GetBodies().at(input[1]);
+        if (universe.GetBodies().find(input[2]) == universe.GetBodies().end()) {
+            return FAIL;
+        }
+        const Body body = universe.GetBodies().at(input[2]);
         std::cout << "Body: " << body.name << "\n"
         "Coordinates: " << body.x << " " << body.y << " " << body.z << "\n"
         "Directional Velocities: " << body.xVel << " " << body.yVel << " " << body.zVel << "\n"
@@ -380,7 +384,7 @@ inline int Get(const std::vector<std::string>& args, Universe& universe, Window&
         "Color: " << body.red << " " << body.green << " " << body.blue << "\n";
     }
 
-    else if (input[0] == "camera") {
+    else if (input[1] == "camera") {
         const Camera camera = window.GetCamera();
         std::cout << "Camera:\n"
         "Coordinates: " << camera.x << " " << camera.y << " " << camera.z << "\n"
@@ -394,32 +398,32 @@ inline int Get(const std::vector<std::string>& args, Universe& universe, Window&
         }
     }
 
-    else if (input[0] == "cScaling") {
+    else if (input[1] == "cScaling") {
         std::cout << "cScaling = " << universe.GetcScaling() << "\n";
     }
 
-    else if (input[0] == "gravityScaling") {
+    else if (input[1] == "gravityScaling") {
         std::cout << "gravityScaling = " << universe.GetGravityScaling() << "\n";
     }
 
-    else if (input[0] == "isPaused") {
+    else if (input[1] == "isPaused") {
         std::cout << "isPaused = " << universe.IsPaused() << "\n";
     }
 
-    else if (input[0] == "targetFramerate") {
+    else if (input[1] == "targetFramerate") {
         std::cout << "targetFramerate = " << window.time.GetTickSpeed() << "\n";
     }
 
-    else if (input[0] == "tickSpeed") {
+    else if (input[1] == "tickSpeed") {
         std::cout << "tickSpeed = " << universe.GetTickSpeed() << "\n";
     }
 
-    else if (input[0] == "timeScaling") {
+    else if (input[1] == "timeScaling") {
         std::cout << "timeScaling = " << universe.GetTimeScaling() << "\n";
     }
 
     else {
-        std::cout << "unrecognized: " << input[0] << "\n";
+        std::cout << "unrecognized: " << input[1] << "\n";
         return FAIL;
     }
 
@@ -441,62 +445,78 @@ inline int Set(const std::vector<std::string>& args, Universe& universe, Window&
         std::cout << "choices: "
         "body [name]\n"
         "camera\n"
-        "cScaling\n"
-        "gravityScaling\n"
-        "isPaused\n"
-        "targetFramerate\n"
-        "tickSpeed\n"
-        "timeScaling\n"
+        "cScaling [value]\n"
+        "gravityScaling [value]\n"
+        "targetFramerate [value]\n"
+        "tickSpeed [value]\n"
+        "timeScaling [value]\n"
         "input your selection: ";
         std::getline(std::cin, tempInput);
-        input = SplitArguments(tempInput);
-    }
-    else {
-        for (int i = 1; i < args.size(); i++) {
-            input.push_back(args[i]);
+        input = args;
+        for (auto i: SplitArguments(tempInput)) {
+            input.push_back(i);
         }
     }
+    else {
+        input = args;
+    }
 
-    if (input[0] == "body") {
+    if (input.size() > 3) {
+        std::cout << "Too many arguments\n";
+        return FAIL;
+    }
+
+    std::string sval;
+    double value;
+
+    if (input[1] == "body") {
         if (input.size() != 2) {
             InvalidArgCount(input.size(), 2);
             return FAIL;
         }
         //Body body = universe.GetBodiesMut().at(input[1]);
         return FAIL;
+        // return SUCCESS;
     }
 
-    else if (input[0] == "camera") {
+    else if (input[1] == "camera") {
         const Camera camera = window.GetCamera();
         return FAIL;
+        // return SUCCESS;
     }
 
-    else if (input[0] == "cScaling") {
-        return FAIL;
+    if (input.size() == 2) {
+        std::cout << "input value: ";
+        std::getline(std::cin, sval);
+    }
+    else {
+        sval = input[2];
+    }
+    try { value = std::stod(sval); }
+    catch (...) { return FAIL; }
+
+    if (input[1] == "cScaling") {
+        return universe.SetcScaling(value);
     }
 
-    else if (input[0] == "gravityScaling") {
-        return FAIL;
+    if (input[1] == "gravityScaling") {
+        return universe.SetGravityScaling(value);
     }
 
-    else if (input[0] == "isPaused") {
-        return FAIL;
+    else if (input[1] == "targetFramerate") {
+        return window.time.SetTickSpeed(value);
     }
 
-    else if (input[0] == "targetFramerate") {
-        return FAIL;
+    else if (input[1] == "tickSpeed") {
+        return universe.time.SetTickSpeed(value);
     }
 
-    else if (input[0] == "tickSpeed") {
-        return FAIL;
-    }
-
-    else if (input[0] == "timeScaling") {
-        return FAIL;
+    else if (input[1] == "timeScaling") {
+        return universe.SetTimeScaling(value);
     }
 
     else {
-        std::cout << "unrecognized: " << input[0] << "\n";
+        std::cout << "unrecognized: " << input[1] << "\n";
         return FAIL;
     }
 
