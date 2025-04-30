@@ -192,8 +192,8 @@ inline int RunCommand(int& sigIn, int& sigOut, const std::vector<std::string>& a
     }
 
     else if (args[0] == "set") {
-        if (args.size() > 3) {
-            InvalidArgCount(args.size(), 1, 3);
+        if (args.size() > 7) {
+            InvalidArgCount(args.size(), 1, 6);
             return FAIL;
         }
         if (Set(args, universe, window) <= FAIL) {
@@ -347,7 +347,7 @@ inline int Get(const std::vector<std::string>& args, Universe& universe, Window&
         "targetFramerate\n"
         "tickSpeed\n"
         "timeScaling\n"
-        "input your selection: ";
+        "input selection: ";
         std::getline(std::cin, tempInput);
         input = args;
         for (auto i: SplitArguments(tempInput)) {
@@ -438,11 +438,279 @@ inline void InvalidArgCount(const int &found, const int &expectedLow, const int&
     std::cout << "Invalid argument count. Found: " << found << ", Expected: " << expectedLow << " to " << expectedHigh << "\n";
 }
 
+inline int SetBody(std::vector<std::string>& input, Universe& universe) {
+    std::string sval;
+    if (input.size() == 2) {
+        std::cout << "body name: ";
+        std::getline(std::cin, sval);
+        input.push_back(sval);
+    }
+    if (universe.GetBodies().find(input[2]) == universe.GetBodies().end()) {
+        return FAIL;
+    }
+    if (input.size() == 3) {
+        std::cout << "properties:\n"
+        "coordinates (x, y, z)\n"
+        "directionalVelocities (xVel, yVel, zVel)\n"
+        "velocity\n"
+        "radius\n"
+        "mass\n"
+        "luminosity\n"
+        "color (r, g, b)\n"
+        "input selection: ";
+        std::getline(std::cin, sval);
+        input.push_back(sval);
+    }
+    std::vector<std::string> values;
+    if (input.size() == 4) {
+        std::cout << "input value(s) (separate with spaces): ";
+        std::getline(std::cin, sval);
+        values = SplitArguments(sval);
+        for (auto i: values) {
+            input.push_back(i);
+        }
+    }
+
+    Body* body = &universe.GetBodiesMut().at(input[2]);
+
+    if (input[3] == "coordinates") {
+        if (input.size() != 7) {
+            InvalidArgCount(input.size(), 7);
+            return FAIL;
+        }
+        double x, y, z;
+        try {
+            x = std::stod(input[4]);
+            y = std::stod(input[5]);
+            z = std::stod(input[6]);
+        }
+        catch (...) {
+            return FAIL;
+        }
+        body->x = x;
+        body->y = y;
+        body->z = z;
+    }
+    else if (input[3] == "directionalVelocities") {
+        if (input.size() != 7) {
+            InvalidArgCount(input.size(), 7);
+            return FAIL;
+        }
+        double xVel, yVel, zVel;
+        try {
+            xVel = std::stod(input[4]);
+            yVel = std::stod(input[5]);
+            zVel = std::stod(input[6]);
+        }
+        catch (...) {
+            return FAIL;
+        }
+        body->xVel = xVel;
+        body->yVel = yVel;
+        body->zVel = zVel;
+    }
+    else if (input[3] == "velocity") {
+        if (input.size() != 5) {
+            InvalidArgCount(input.size(), 5);
+            return FAIL;
+        }
+        double velocity;
+        try {
+            velocity = std::stod(input[4]);
+        }
+        catch (...) {
+            return FAIL;
+        }
+        double currentVelocity = sqrt((body->xVel * body->xVel) + (body->yVel * body->yVel) + (body->zVel * body->zVel));
+        double velocityRatio = velocity / currentVelocity;
+        body->xVel *= velocityRatio;
+        body->yVel *= velocityRatio;
+        body->zVel *= velocityRatio;
+    }
+    else if (input[3] == "radius") {
+        if (input.size() != 5) {
+            InvalidArgCount(input.size(), 5);
+            return FAIL;
+        }
+        double radius;
+        try {
+            radius = std::stod(input[4]);
+        }
+        catch (...) {
+            return FAIL;
+        }
+        body->radius = radius;
+    }
+    else if (input[3] == "mass") {
+        if (input.size() != 5) {
+            InvalidArgCount(input.size(), 5);
+            return FAIL;
+        }
+        double mass;
+        try {
+            mass = std::stod(input[4]);
+        }
+        catch (...) {
+            return FAIL;
+        }
+        body->mass = mass;
+    }
+    else if (input[3] == "luminosity") {
+        if (input.size() != 5) {
+            InvalidArgCount(input.size(), 5);
+            return FAIL;
+        }
+        double luminosity;
+        try {
+            luminosity = std::stod(input[4]);
+        }
+        catch (...) {
+            return FAIL;
+        }
+        if (luminosity < 0 || luminosity > 1) {
+            std::cout << "out of range\n";
+            return FAIL;
+        }
+        body->luminosity = luminosity;
+    }
+    else if (input[3] == "color") {
+        if (input.size() != 7) {
+            InvalidArgCount(input.size(), 7);
+            return FAIL;
+        }
+        double r, g, b;
+        try {
+            r = std::stod(input[4]);
+            g = std::stod(input[5]);
+            b = std::stod(input[6]);
+        }
+        catch (...) {
+            return FAIL;
+        }
+        if (r < 0 || r > 1 || g < 0 || g > 1 || b < 0 || b > 1) {
+            std::cout << "out of range\n";
+            return FAIL;
+        }
+        body->red = r;
+        body->green = g;
+        body->blue = b;
+    }
+    else {
+        return FAIL;
+    }
+
+    return SUCCESS;
+}
+
+inline int SetCamera(std::vector<std::string>& input, Window& window) {
+    std::string sval;
+    if (input.size() == 2) {
+        std::cout << "properties:\n"
+        "coordinates (x, y, z)\n"
+        "angles (xVel, yVel, zVel)\n"
+        "moveSpeed\n"
+        "rotationSpeed\n"
+        "sensitivity\n"
+        "input selection: ";
+        std::getline(std::cin, sval);
+        input.push_back(sval);
+    }
+    if (input.size() == 3) {
+        std::vector<std::string> values;
+        std::cout << "input value(s) (separate with spaces):";
+        std::getline(std::cin, sval);
+        values = SplitArguments(sval);
+        for (auto i: values) {
+            input.push_back(i);
+        }
+    }
+
+    if (input[2] == "coordinates") {
+        if (input.size() != 6) {
+            InvalidArgCount(input.size(), 6);
+            return FAIL;
+        }
+        double x, y, z;
+        try {
+            x = std::stod(input[3]);
+            y = std::stod(input[4]);
+            z = std::stod(input[5]);
+        }
+        catch (...) {
+            return FAIL;
+        }
+        window.SetCameraPosition(x, y, z);
+    }
+    else if (input[2] == "angles") {
+        if (input.size() != 6) {
+            InvalidArgCount(input.size(), 6);
+            return FAIL;
+        }
+        double theta, phi, psi;
+        try {
+            theta = std::stod(input[3]);
+            phi = std::stod(input[4]);
+            psi = std::stod(input[5]);
+        }
+        catch (...) {
+            return FAIL;
+        }
+        window.SetCameraAngle(theta, phi, psi);
+    }
+    else if (input[2] == "moveSpeed") {
+        if (input.size() != 4) {
+            InvalidArgCount(input.size(), 4);
+            return FAIL;
+        }
+        double moveSpeed;
+        try {
+            moveSpeed = std::stod(input[3]);
+        }
+        catch (...) {
+            return FAIL;
+        }
+        window.SetCameraSpeed(moveSpeed);
+    }
+    else if (input[2] == "rotationSpeed") {
+        if (input.size() != 4) {
+            InvalidArgCount(input.size(), 4);
+            return FAIL;
+        }
+        double rotationSpeed;
+        try {
+            rotationSpeed = std::stod(input[3]);
+        }
+        catch (...) {
+            return FAIL;
+        }
+        window.SetCameraRotationSpeed(rotationSpeed);
+    }
+    else if (input[2] == "sensitivity") {
+        if (input.size() != 4) {
+            InvalidArgCount(input.size(), 4);
+            return FAIL;
+        }
+        double sensitivity;
+        try {
+            sensitivity = std::stod(input[3]);
+        }
+        catch (...) {
+            return FAIL;
+        }
+        window.SetCameraSensitivity(sensitivity);
+    }
+    else {
+        return FAIL;
+    }
+
+    return SUCCESS;
+}
+
 inline int Set(const std::vector<std::string>& args, Universe& universe, Window& window) {
     std::string tempInput;
     std::vector<std::string> input;
     if (args.size() == 1) {
-        std::cout << "choices: "
+        std::cout << "choices:\n"
         "body [name]\n"
         "camera\n"
         "cScaling [value]\n"
@@ -450,7 +718,7 @@ inline int Set(const std::vector<std::string>& args, Universe& universe, Window&
         "targetFramerate [value]\n"
         "tickSpeed [value]\n"
         "timeScaling [value]\n"
-        "input your selection: ";
+        "input selection: ";
         std::getline(std::cin, tempInput);
         input = args;
         for (auto i: SplitArguments(tempInput)) {
@@ -461,28 +729,20 @@ inline int Set(const std::vector<std::string>& args, Universe& universe, Window&
         input = args;
     }
 
-    if (input.size() > 3) {
-        std::cout << "Too many arguments\n";
-        return FAIL;
-    }
-
     std::string sval;
     double value;
 
     if (input[1] == "body") {
-        if (input.size() != 2) {
-            InvalidArgCount(input.size(), 2);
-            return FAIL;
-        }
-        //Body body = universe.GetBodiesMut().at(input[1]);
-        return FAIL;
-        // return SUCCESS;
+        return SetBody(input, universe);
     }
 
     else if (input[1] == "camera") {
-        const Camera camera = window.GetCamera();
+        return SetCamera(input, window);
+    }
+
+    if (input.size() > 3) {
+        std::cout << "too many arguments\n";
         return FAIL;
-        // return SUCCESS;
     }
 
     if (input.size() == 2) {
@@ -508,7 +768,7 @@ inline int Set(const std::vector<std::string>& args, Universe& universe, Window&
     }
 
     else if (input[1] == "tickSpeed") {
-        return universe.time.SetTickSpeed(value);
+        return universe.SetTickSpeed(value);
     }
 
     else if (input[1] == "timeScaling") {

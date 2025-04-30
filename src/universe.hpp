@@ -29,6 +29,7 @@ public:
     // getters
 
     const std::map<std::string, Body>& GetBodies() const;
+    std::map<std::string, Body>& GetBodiesMut(); // bodies are mutable
     const double& GetTickSpeed() const;
     const double& GetTimeScaling() const;
     const double& GetGravityScaling() const;

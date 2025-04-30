@@ -69,6 +69,10 @@ const std::map<std::string, Body>& Universe::GetBodies() const {
     return _bodies;
 }
 
+std::map<std::string, Body> &Universe::GetBodiesMut() {
+    return _bodies;
+}
+
 const double& Universe::GetTickSpeed() const {
     return _tickSpeed;
 }
