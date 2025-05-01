@@ -21,7 +21,7 @@ constexpr int vertexFloatWidth = 12;
 constexpr const char* vertexShaderSource = R"(
     #version 330 core
 
-    float zNear = 0.0001;
+    float zNear = 0.0000000001;
     float zFar = 1000000000.0;
     float fCoeff = 1.0 / log2(zFar + 1.0);
 
@@ -131,7 +131,6 @@ int Window::SetupOpenGL() {
     // Use v-sync
     // SDL_GL_SetSwapInterval(1);
 
-    // Disable depth test and face culling.
     glEnable(GL_DEPTH_TEST);
 
     // tell opengl window size
@@ -140,7 +139,6 @@ int Window::SetupOpenGL() {
     // create shader object
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
     // attach source to shader object and compile
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
@@ -169,7 +167,6 @@ int Window::SetupOpenGL() {
 
     // create shader program to merge two pieces
     _shaderProgram = glCreateProgram();
-
     // creates and links
     glAttachShader(_shaderProgram, vertexShader);
     glAttachShader(_shaderProgram, fragmentShader);
@@ -184,7 +181,6 @@ int Window::SetupOpenGL() {
 
     // use this program
     glUseProgram(_shaderProgram);
-
     // delete old objects
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
@@ -434,8 +430,8 @@ inline void DrawSphere(const Body& body, const Camera& camera, std::vector<float
         dzn = cos(glm::radians(i * stackAngle));
         dz = radius * dzn;
         for (int j = 0; j < sectorCount; j++) {
-            dxn = sin(glm::radians(i * stackAngle)) * cos(glm::radians(j * sectorAngle));
-            dyn = sin(glm::radians(i * stackAngle)) * sin(glm::radians(j * sectorAngle));
+            dxn = sin(glm::radians(i * stackAngle)) * cos(glm::radians(j * sectorAngle + body.theta));
+            dyn = sin(glm::radians(i * stackAngle)) * sin(glm::radians(j * sectorAngle + body.theta));
             dx = radius * dxn;
             dy = radius * dyn;
             AddValues(vertexData, x + dx, y + dy, z + dz); // position

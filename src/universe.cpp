@@ -69,7 +69,7 @@ const std::map<std::string, Body>& Universe::GetBodies() const {
     return _bodies;
 }
 
-std::map<std::string, Body> &Universe::GetBodiesMut() {
+std::map<std::string, Body>& Universe::GetBodiesMut() {
     return _bodies;
 }
 
@@ -188,19 +188,25 @@ int Universe::CalculateTick() {
     _mtx.lock();
     double tickspeedFactor = _timeScaling * 1.0 / _tickSpeed;
     // move positions
-    for (auto& [name, obj]: _bodies) {
-        obj.x += obj.xVel * tickspeedFactor;
-        obj.y += obj.yVel * tickspeedFactor;
-        obj.z += obj.zVel * tickspeedFactor;
+    for (auto& [name, body]: _bodies) {
+        body.x += body.xVel * tickspeedFactor;
+        body.y += body.yVel * tickspeedFactor;
+        body.z += body.zVel * tickspeedFactor;
+        body.theta += body.thetaVel * tickspeedFactor;
+        body.phi += body.phiVel * tickspeedFactor;
+        body.psi += body.psiVel * tickspeedFactor;
+        body.theta = fmod(body.theta, 360.0);
+        body.phi = fmod(body.phi, 360.0);
+        body.psi = fmod(body.psi, 360.0);
     }
     // calculate accelerations
-    for (auto& [name1, obj1]: _bodies) {
-        for (auto& [name2, obj2]: _bodies) {
+    for (auto& [name1, body1]: _bodies) {
+        for (auto& [name2, body2]: _bodies) {
             // if the same body, skip
             if (name1 == name2) {
                 continue;
             }
-            Accelerate(obj1, obj2, tickspeedFactor, _gravityScaling, _cScaling);
+            Accelerate(body1, body2, tickspeedFactor, _gravityScaling, _cScaling);
         }
     }
     _mtx.unlock();
