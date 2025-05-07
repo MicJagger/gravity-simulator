@@ -48,36 +48,36 @@ public:
     // getters
     const Camera& GetCamera() const;
     bool CameraLocked() const;
-    const double& GetCameraSpeed() const;
-    const double& GetCameraRotationSpeed() const;
-    const double& GetCameraSensitivity() const;
+    double GetCameraSpeed() const;
+    double GetCameraRotationSpeed() const;
+    double GetCameraSensitivity() const;
 
     // setters
 
-    int SetCameraSpeed(const double& speed);
-    int SetCameraRotationSpeed(const double& rotationSpeed);
-    int SetCameraSensitivity(const double& sensitivity);
+    int SetCameraSpeed(double speed);
+    int SetCameraRotationSpeed(double rotationSpeed);
+    int SetCameraSensitivity(double sensitivity);
 
     // poll for inputs / events
     std::vector<SDL_Event> PollEvent();
 
     // camera work
 
-    int SetCameraPosition(const double& x, const double& y, const double& z);
-    int SetCameraAngle(const float& theta, const float& phi, const float& psi);
+    int SetCameraPosition(double x, double y, double z);
+    int SetCameraAngle(float theta, float phi, float psi);
 
-    int ChangeCameraPosition(const double& x, const double& y, const double& z);
-    int ChangeCameraAngle(const float& theta, const float& phi, const float& psi);
+    int ChangeCameraPosition(double x, double y, double z);
+    int ChangeCameraAngle(float theta, float phi, float psi);
 
-    int MoveCamera(const double& forward, const double& right, const double& up);
+    int MoveCamera(double forward, double right, double up);
 
     // locking
 
     int LockCamera(const std::string& bodyName);
     int LockCamera(const std::string& bodyName, const Body& body);
     int UnlockCamera();
-    int SetCameraBodyDistance(const double& distance);
-    int ChangeCameraBodyDistance(const double& forward);
+    int SetCameraBodyDistance(double distance);
+    int ChangeCameraBodyDistance(double forward);
 
     // draw current frame
     int DrawFrame(const Universe& universe);

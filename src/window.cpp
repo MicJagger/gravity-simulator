@@ -229,19 +229,19 @@ bool Window::CameraLocked() const {
     return true;
 }
 
-const double& Window::GetCameraSpeed() const {
+double Window::GetCameraSpeed() const {
     return _camera.speed;
 }
 
-const double& Window::GetCameraRotationSpeed() const {
+double Window::GetCameraRotationSpeed() const {
     return _camera.rotationSpeed;
 }
 
-const double& Window::GetCameraSensitivity() const {
+double Window::GetCameraSensitivity() const {
     return _camera.sensitivity;
 }
 
-int Window::SetCameraSpeed(const double& speed) {
+int Window::SetCameraSpeed(double speed) {
     if (speed < 0.0) {
         return FAIL;
     }
@@ -251,7 +251,7 @@ int Window::SetCameraSpeed(const double& speed) {
     return SUCCESS;
 }
 
-int Window::SetCameraRotationSpeed(const double& rotationSpeed) {
+int Window::SetCameraRotationSpeed(double rotationSpeed) {
     if (rotationSpeed < 0.0) {
         return FAIL;
     }
@@ -261,7 +261,7 @@ int Window::SetCameraRotationSpeed(const double& rotationSpeed) {
     return SUCCESS;
 }
 
-int Window::SetCameraSensitivity(const double& sensitivity) {
+int Window::SetCameraSensitivity(double sensitivity) {
     if (sensitivity < 0.0) {
         return FAIL;
     }
@@ -279,7 +279,7 @@ std::vector<SDL_Event> Window::PollEvent() {
     return events;
 }
 
-int Window::SetCameraPosition(const double& x, const double& y, const double& z) {
+int Window::SetCameraPosition(double x, double y, double z) {
     _mtx.lock();
     _camera.x = x;
     _camera.y = y;
@@ -288,7 +288,7 @@ int Window::SetCameraPosition(const double& x, const double& y, const double& z)
     return SUCCESS;
 }
 
-int Window::SetCameraAngle(const float& theta, const float& phi, const float& psi) {
+int Window::SetCameraAngle(float theta, float phi, float psi) {
     _mtx.lock();
     _camera.theta = fmod(theta, 360.0f);
     _camera.phi = fmod(phi, 360.0f);
@@ -297,7 +297,7 @@ int Window::SetCameraAngle(const float& theta, const float& phi, const float& ps
     return SUCCESS;
 }
 
-int Window::ChangeCameraPosition(const double& x, const double& y, const double& z) {
+int Window::ChangeCameraPosition(double x, double y, double z) {
     _mtx.lock();
     _camera.x += x;
     _camera.y += y;
@@ -306,7 +306,7 @@ int Window::ChangeCameraPosition(const double& x, const double& y, const double&
     return SUCCESS;
 }
 
-int Window::ChangeCameraAngle(const float& theta, const float& phi, const float& psi) {
+int Window::ChangeCameraAngle(float theta, float phi, float psi) {
     _camera.theta = fmod(_camera.theta + theta, 360.0f);
     float newPhi = _camera.phi + phi;
     _mtx.lock();
@@ -324,7 +324,7 @@ int Window::ChangeCameraAngle(const float& theta, const float& phi, const float&
     return SUCCESS;
 }
 
-int Window::MoveCamera(const double& forward, const double& right, const double& up) {
+int Window::MoveCamera(double forward, double right, double up) {
     float theta = glm::radians(_camera.theta);
     float x = cos(theta);
     float y = sin(theta);
@@ -368,7 +368,7 @@ int Window::UnlockCamera() {
     return SUCCESS;
 }
 
-int Window::SetCameraBodyDistance(const double& distance) {
+int Window::SetCameraBodyDistance(double distance) {
     if (distance < 0) {
         return FAIL;
     }
@@ -378,7 +378,7 @@ int Window::SetCameraBodyDistance(const double& distance) {
     return SUCCESS;
 }
 
-int Window::ChangeCameraBodyDistance(const double& forward) {
+int Window::ChangeCameraBodyDistance(double forward) {
     _mtx.lock();
     _camera.bodyDistance += forward;
     if (_camera.bodyDistance < 0) {
@@ -388,13 +388,13 @@ int Window::ChangeCameraBodyDistance(const double& forward) {
     return SUCCESS;
 }
 
-inline void AddValues(std::vector<float>& vertexData, const float& f0, const float& f1, const float& f2) {
+inline void AddValues(std::vector<float>& vertexData, float f0, float f1, float f2) {
     vertexData.push_back(f0);
     vertexData.push_back(f1);
     vertexData.push_back(f2);
 }
 
-inline void AddValues(std::vector<unsigned int>& elementData, const unsigned int& f0, const unsigned int& f1, const unsigned int& f2) {
+inline void AddValues(std::vector<unsigned int>& elementData, unsigned int f0, unsigned int f1, unsigned int f2) {
     elementData.push_back(f0);
     elementData.push_back(f1);
     elementData.push_back(f2);

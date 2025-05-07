@@ -18,7 +18,7 @@ void PhysicsThread(int& sigIn, int& sigOut, Universe& universe);
 // handles drawing of the frames
 void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window);
 
-void SpawnSolarSystemScaled(Universe& universe, const double& scaleValue, const double& radiusScale, const double& sunRadiusScale);
+void SpawnSolarSystemScaled(Universe& universe, double scaleValue, double radiusScale, double sunRadiusScale);
 
 // handles user inputs
 int main(int argc, char* argv[]) {
@@ -286,7 +286,7 @@ void RenderThread(int& sigIn, int& sigOut, Universe& universe, Window& window) {
 
 // testing / example
 
-void SpawnSolarSystemScaled(Universe& universe, const double& scaleValue, const double& radiusScale, const double& sunRadiusScale) {
+void SpawnSolarSystemScaled(Universe& universe, double scaleValue, double radiusScale, double sunRadiusScale) {
     std::mutex mtx;
     mtx.lock();
 

@@ -30,11 +30,11 @@ public:
 
     const std::map<std::string, Body>& GetBodies() const;
     std::map<std::string, Body>& GetBodiesMut(); // bodies are mutable
-    const double& GetTickSpeed() const;
-    const double& GetTimeScaling() const;
-    const double& GetGravityScaling() const;
-    const double& GetcScaling() const;
-    const bool& IsPaused() const;
+    double GetTickSpeed() const;
+    double GetTimeScaling() const;
+    double GetGravityScaling() const;
+    double GetcScaling() const;
+    bool IsPaused() const;
 
 
     // setters / manipulators
@@ -42,10 +42,10 @@ public:
     int AddBody(const std::string& name, const Body& body);
     int RemoveBody(const std::string& name);
     int ClearBodies();
-    int SetTickSpeed(const double& tickSpeed);
-    int SetTimeScaling(const double& timeScaling);
-    int SetGravityScaling(const double& gravityScaling);
-    int SetcScaling(const double& cScaling);
+    int SetTickSpeed(double tickSpeed);
+    int SetTimeScaling(double timeScaling);
+    int SetGravityScaling(double gravityScaling);
+    int SetcScaling(double cScaling);
     int Pause();
     int Unpause();
 

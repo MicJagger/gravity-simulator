@@ -6,38 +6,24 @@
 
 struct Camera {
     // m
-    double x;
-    // m
-    double y;
-    // m
-    double z;
+    double x = 0.0, y = 0.0, z = 0.0;
     // degrees - horizontal
-    float theta;
+    float theta = 90.0;
     // degrees - vertical
-    float phi;
+    float phi = 90.0;
     // degrees - spin
-    float psi;
+    float psi = 0.0;
     // m / s
-    double speed;
+    double speed = 1.0;
     // d / s
-    double rotationSpeed;
+    double rotationSpeed = 1.0;
     // d / p
-    double sensitivity;
+    double sensitivity = 1.0;
 
     // locked to
-    std::string bodyName;
+    std::string bodyName = "";
     // m
-    double bodyDistance;
-
-    Camera() {
-        x = 0, y = 0, z = 0;
-        theta = 90;
-        phi = 90;
-        psi = 0;
-        speed = 1.0, rotationSpeed = 1.0, sensitivity = 1.0;
-        bodyName = "";
-        bodyDistance = 0.0;
-    }
+    double bodyDistance = 0.0;
 };
 
 #endif

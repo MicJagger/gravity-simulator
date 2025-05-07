@@ -5,50 +5,31 @@
 #include <string>
 
 struct Body {
-    std::string name;
+    std::string name = "";
     // m
-    double x;
-    // m
-    double y;
-    // m
-    double z;
+    double x = 0.0, y = 0.0, z = 0.0;
     // m/s
-    double xVel;
-    // m/s
-    double yVel;
-    // m/s
-    double zVel;
+    double xVel = 0.0, yVel = 0.0, zVel = 0.0;
     // degrees - horizontal
-    double theta;
+    double theta = 0.0;
     // degrees - vertical
-    double phi;
+    double phi = 0.0;
     // degrees - spin
-    double psi;
+    double psi = 0.0;
     // degrees / s - horizontal
-    double thetaVel;
+    double thetaVel = 0.0;
     // degrees / s - vertical
-    double phiVel;
+    double phiVel = 0.0;
     // degrees / s - spin
-    double psiVel;
+    double psiVel = 0.0;
     // m
-    double radius;
+    double radius = 0.0;
     // kg
-    double mass;
-    // W
-    float luminosity;
+    double mass = 0.0;
+    // value of brightness (maybe later W)
+    float luminosity = 0.1f;
     // color
-    float red, green, blue;
-
-    Body() {
-        name = "";
-        x = 0.0, y = 0.0, z = 0.0;
-        xVel = 0.0, yVel = 0.0, zVel = 0.0;
-        theta = 0.0, phi = 0.0, psi = 0.0;
-        thetaVel = 0.0, phiVel = 0.0, psiVel = 0.0;
-        radius = 0.0, mass = 0.0;
-        luminosity = 0.1;
-        red = 1.0f, green = 1.0f, blue = 1.0f;
-    }
+    float red = 1.0f, green = 1.0f, blue = 1.0f;
 };
 
 #endif

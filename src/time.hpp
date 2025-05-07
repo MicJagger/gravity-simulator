@@ -13,8 +13,8 @@ public:
 
     Time();
 
-    const double& GetTickSpeed();
-    int SetTickSpeed(const double& tickSpeed);
+    double GetTickSpeed() const;
+    int SetTickSpeed(double tickSpeed);
 
     // tracks beginning of a frame
     void TickStart();

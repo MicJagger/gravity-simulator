@@ -65,11 +65,11 @@ Time::Time() {
     _targetTickSpeed = 60;
 }
 
-const double& Time::GetTickSpeed() {
+double Time::GetTickSpeed() const {
     return _targetTickSpeed;
 }
 
-int Time::SetTickSpeed(const double& tickSpeed) {
+int Time::SetTickSpeed(double tickSpeed) {
     if (tickSpeed <= 0) {
         return FAIL;
     }

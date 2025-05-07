@@ -7,7 +7,7 @@
 #include "definitions.hpp"
 #include "values.hpp"
 
-inline double CalculateGravitationalAcceleration(const double& mass, const double& distanceSquared, const double& cScaling) {
+inline double CalculateGravitationalAcceleration(double mass, double distanceSquared, double cScaling) {
     double distance = sqrt(distanceSquared);
     double G2oc2Scaled = G2oc2 / (cScaling * cScaling); // 1 / c^2 -> 1 / cScaling^2
     double relativity = 1.0 / sqrt(1.0 - (G2oc2Scaled * mass / distance));
@@ -15,7 +15,7 @@ inline double CalculateGravitationalAcceleration(const double& mass, const doubl
     // https://physics.stackexchange.com/questions/47379/what-is-the-weight-equation-through-general-relativity
 }
 
-inline int Accelerate(Body& obj1, const Body& obj2, const double& tickspeedFactor, const double& gravityScaling, const double& cScaling) {
+inline int Accelerate(Body& obj1, const Body& obj2, double tickspeedFactor, double gravityScaling, double cScaling) {
     double dx = obj2.x - obj1.x;
     double dy = obj2.y - obj1.y;
     double dz = obj2.z - obj1.z;
@@ -43,7 +43,7 @@ inline bool CheckCollision(const Body& obj1, const Body& obj2) {
     return false;
 }
 
-inline bool CheckCollision(const Body& obj1, const Body& obj2, const double& distanceSquared) {
+inline bool CheckCollision(const Body& obj1, const Body& obj2, double distanceSquared) {
     double distance = sqrt(distanceSquared);
     if ((obj1.radius + obj2.radius) >= distance) {
         return true;
@@ -73,23 +73,23 @@ std::map<std::string, Body>& Universe::GetBodiesMut() {
     return _bodies;
 }
 
-const double& Universe::GetTickSpeed() const {
+double Universe::GetTickSpeed() const {
     return _tickSpeed;
 }
 
-const double& Universe::GetTimeScaling() const {
+double Universe::GetTimeScaling() const {
     return _timeScaling;
 }
 
-const double& Universe::GetGravityScaling() const {
+double Universe::GetGravityScaling() const {
     return _gravityScaling;
 }
 
-const double& Universe::GetcScaling() const {
+double Universe::GetcScaling() const {
     return _cScaling;
 }
 
-const bool& Universe::IsPaused() const {
+bool Universe::IsPaused() const {
     return _paused;
 }
 
@@ -126,7 +126,7 @@ int Universe::ClearBodies() {
     return SUCCESS;
 }
 
-int Universe::SetTickSpeed(const double& tickSpeed) {
+int Universe::SetTickSpeed(double tickSpeed) {
     if (tickSpeed <= 0) {
         return FAIL;
     }
@@ -137,7 +137,7 @@ int Universe::SetTickSpeed(const double& tickSpeed) {
     return SUCCESS;
 }
 
-int Universe::SetTimeScaling(const double& timeScaling) {
+int Universe::SetTimeScaling(double timeScaling) {
     if (timeScaling <= 0) {
         return FAIL;
     }
@@ -147,14 +147,14 @@ int Universe::SetTimeScaling(const double& timeScaling) {
     return SUCCESS;
 }
 
-int Universe::SetGravityScaling(const double& gravityScaling) {
+int Universe::SetGravityScaling(double gravityScaling) {
     _mtx.lock();
     _gravityScaling = gravityScaling;
     _mtx.unlock();
     return SUCCESS;
 }
 
-int Universe::SetcScaling(const double& cScaling) {
+int Universe::SetcScaling(double cScaling) {
     if (cScaling <= 0) {
         return FAIL;
     }

@@ -24,8 +24,8 @@ inline int RunCommand(int& sigIn, int& sigOut, const std::vector<std::string>& a
 inline int AddBody(Universe& universe);
 inline void FailedConversion();
 inline int Get(const std::vector<std::string>& args, Universe& universe, Window& window);
-inline void InvalidArgCount(const int& found, const int& expected);
-inline void InvalidArgCount(const int& found, const int& expectedLow, const int& expectedHigh);
+inline void InvalidArgCount(int found, int expected);
+inline void InvalidArgCount(int found, int expectedLow, int expectedHigh);
 inline int Set(const std::vector<std::string>& args, Universe& universe, Window& window);
 std::vector<std::string> SplitArguments(const std::string& input);
 
@@ -225,7 +225,7 @@ inline int RunCommand(int& sigIn, int& sigOut, const std::vector<std::string>& a
 
 // 
 
-inline int AddBody(Universe &universe) {
+inline int AddBody(Universe& universe) {
     Body body;
     std::string input;
     std::vector<std::string> tempArgs;
@@ -430,11 +430,11 @@ inline int Get(const std::vector<std::string>& args, Universe& universe, Window&
     return SUCCESS;
 }
 
-inline void InvalidArgCount(const int &found, const int &expected) {
+inline void InvalidArgCount(int found, int expected) {
     std::cout << "Invalid argument count. Found: " << found << ", Expected: " << expected << "\n";
 }
 
-inline void InvalidArgCount(const int &found, const int &expectedLow, const int& expectedHigh) {
+inline void InvalidArgCount(int found, int expectedLow, int expectedHigh) {
     std::cout << "Invalid argument count. Found: " << found << ", Expected: " << expectedLow << " to " << expectedHigh << "\n";
 }
 
