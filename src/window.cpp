@@ -6,11 +6,11 @@
 #include <string>
 #include <vector>
 
-#include "external/glm/glm/glm.hpp"
-#include "external/glm/glm/gtc/matrix_transform.hpp"
-#include "external/glm/glm/gtc/type_ptr.hpp"
-#include "external/include_glad.hpp"
-#include "external/include_sdl.hpp"
+#include <glad/glad.h>
+#include "lib/glm/glm/glm.hpp"
+#include "lib/glm/glm/gtc/matrix_transform.hpp"
+#include "lib/glm/glm/gtc/type_ptr.hpp"
+#include <SDL.h>
 
 #include "body.hpp"
 #include "definitions.hpp"

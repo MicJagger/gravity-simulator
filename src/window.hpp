@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "external/include_sdl.hpp"
+#include <SDL.h>
 
 #include "camera.hpp"
 #include "time.hpp"

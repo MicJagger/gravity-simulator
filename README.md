@@ -6,13 +6,15 @@
 
 # Installation
 
-This project requies the g++ compiler to be installed.
+This project requies the g++ compiler to be installed. (``make``, ``Mingw32-make``)
 
 1. ``git clone LINK --recursive``
 2. ``cd gravity-simulator``
 3. If you did not do ``--recursive`` during ``git clone``, run ``git submodule update --init --recursive``
-4. In ``./src/external/``, run ``install-libs-OS.ex`` for your operating system
-5. ``make`` / ``Mingw32-make`` (windows) to build and run, or ``make build`` to just build the executable
+4. In ``./setup/``, run ``install-libs-OS.ext`` for your operating system (Linux requires sudo priveleges)
+5. ``make`` to build, or ``make run`` to build and then run the executable
+
+IDE include paths are added for VSCode in ``.vscode/c_cpp_properties.json``.
 
 Note: Linux currently does not build yet, as it requires some work inside the console thread.
 

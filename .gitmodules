@@ -1,3 +1,7 @@
-[submodule "src/external/glm"]
-	path = src/external/glm
+[submodule "src/lib/glm"]
+	path = src/lib/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "src/lib/SDL"]
+	path = src/lib/SDL
+	url = https://github.com/libsdl-org/SDL.git
+	branch = SDL2
