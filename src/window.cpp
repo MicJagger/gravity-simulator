@@ -1,6 +1,7 @@
 #include "window.hpp"
 
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <string>
@@ -18,62 +19,60 @@
 // POS.X, POS.Y, POS.Z, COLOR.R, COLOR.G, COLOR.B, TEX.X, TEX.Y, LUMINOSITY, NORMAL.X, NORMAL.Y, NORMAL.Z
 constexpr int vertexFloatWidth = 12;
 
-constexpr const char* vertexShaderSource = R"(
-    #version 330 core
+constexpr const char* vertexShaderSourcer = R"(#version 330 core
 
-    float zNear = 0.0000000001;
-    float zFar = 1000000000.0;
-    float fCoeff = 1.0 / log2(zFar + 1.0);
+float zNear = 0.0000000001;
+float zFar = 1000000000.0;
+float fCoeff = 1.0 / log2(zFar + 1.0);
 
-    uniform mat4 projectionMatrix;
-    uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
 
-    layout (location = 0) in vec3 vPos;
-    layout (location = 1) in vec3 vColor;
-    layout (location = 2) in vec2 vTexCoords;
-    layout (location = 3) in float vMinBrightness;
-    layout (location = 4) in vec3 vNormals;
+layout (location = 0) in vec3 vPos;
+layout (location = 1) in vec3 vColor;
+layout (location = 2) in vec2 vTexCoords;
+layout (location = 3) in float vMinBrightness;
+layout (location = 4) in vec3 vNormals;
 
-    out vec3 vertexPos;
-    out vec3 vertexColor;
-    out vec2 vertexTexCoords;
-    out float vertexMinBrightness;
-    out vec3 vertexNormal;
-    out float fragDepth;
+out vec3 vertexPos;
+out vec3 vertexColor;
+out vec2 vertexTexCoords;
+out float vertexMinBrightness;
+out vec3 vertexNormal;
+out float fragDepth;
 
-    void main() {
-        gl_Position = projectionMatrix * viewMatrix * vec4(vPos.x, vPos.y, vPos.z, 1.0f);
-        gl_Position.z = log2(max(zNear, 1.0 + gl_Position.w)) * fCoeff * 2.0 - 1.0;
-        fragDepth = log2(1.0 + gl_Position.w) * fCoeff;
-        vertexPos = vPos;
-        vertexColor = vColor;
-        //vertexTexCoords = vec2(vTexCoords.x, vTexCoords.y * -1.0f);
-        vertexMinBrightness = vMinBrightness;
-        vertexNormal = vNormals;
-    }
+void main() {
+    gl_Position = projectionMatrix * viewMatrix * vec4(vPos.x, vPos.y, vPos.z, 1.0f);
+    gl_Position.z = log2(max(zNear, 1.0 + gl_Position.w)) * fCoeff * 2.0 - 1.0;
+    fragDepth = log2(1.0 + gl_Position.w) * fCoeff;
+    vertexPos = vPos;
+    vertexColor = vColor;
+    //vertexTexCoords = vec2(vTexCoords.x, vTexCoords.y * -1.0f);
+    vertexMinBrightness = vMinBrightness;
+    vertexNormal = vNormals;
+}
 )";
 
-constexpr const char* fragmentShaderSource = R"(
-    #version 330 core
+constexpr const char* fragmentShaderSourcer = R"(#version 330 core
 
-    uniform vec3 lightPos;
+uniform vec3 lightPos;
 
-    in vec3 vertexPos;
-    in vec3 vertexColor;
-    in float vertexMinBrightness;
-    in vec3 vertexNormal;
-    in float fragDepth;
+in vec3 vertexPos;
+in vec3 vertexColor;
+in float vertexMinBrightness;
+in vec3 vertexNormal;
+in float fragDepth;
 
-    out vec4 FragColor;
+out vec4 FragColor;
 
-    void main() {
-        vec3 vNorm = normalize(vertexNormal);
-        vec3 lightDirection = normalize(lightPos - vertexPos);
-        float diff = max(dot(vNorm, lightDirection), 0.0f);
-        float lightIntensity = min(diff + vertexMinBrightness, 1.0f);
-        FragColor = vec4(vertexColor * lightIntensity, 1.0f);
-        gl_FragDepth = fragDepth;
-    }
+void main() {
+    vec3 vNorm = normalize(vertexNormal);
+    vec3 lightDirection = normalize(lightPos - vertexPos);
+    float diff = max(dot(vNorm, lightDirection), 0.0f);
+    float lightIntensity = min(diff + vertexMinBrightness, 1.0f);
+    FragColor = vec4(vertexColor * lightIntensity, 1.0f);
+    gl_FragDepth = fragDepth;
+}
 )";
 
 inline glm::vec3 AngleToVector(const float& theta, const float& phi, const float& psi) {
@@ -128,6 +127,24 @@ int Window::SetupOpenGL() {
     }
     gladLoadGLLoader(SDL_GL_GetProcAddress);
 
+    // gather shaders
+    std::ifstream vertexShaderFile("src/shaders/vertexshader.glsl", std::ios_base::binary);
+    if (!vertexShaderFile.is_open()) return FAIL;
+    std::ifstream fragmentShaderFile("src/shaders/fragmentshader.glsl", std::ios_base::binary);
+    if (!fragmentShaderFile.is_open()) return FAIL;
+
+    std::string vertexShaderSource, fragmentShaderSource;
+    while (!vertexShaderFile.eof()) {
+        vertexShaderSource.push_back(vertexShaderFile.get());
+    }
+    vertexShaderSource.pop_back();
+    vertexShaderFile.close();
+    while (!fragmentShaderFile.eof()) {
+        fragmentShaderSource.push_back(fragmentShaderFile.get());
+    }
+    fragmentShaderSource.pop_back();
+    fragmentShaderFile.close();
+
     // Use v-sync
     // SDL_GL_SetSwapInterval(1);
 
@@ -140,7 +157,8 @@ int Window::SetupOpenGL() {
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     // attach source to shader object and compile
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    const char* vSS = vertexShaderSource.c_str();
+    glShaderSource(vertexShader, 1, &vSS, NULL);
     glCompileShader(vertexShader);
     // if compilation failed
     int success;
@@ -155,7 +173,8 @@ int Window::SetupOpenGL() {
     // setup and compile fragment shader
     unsigned int fragmentShader;
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    const char* fSS = fragmentShaderSource.c_str();
+    glShaderSource(fragmentShader, 1, &fSS, NULL);
     glCompileShader(fragmentShader);
     // if compilation failed (again)
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);

@@ -71,6 +71,7 @@
         "mutex": "cpp",
         "random": "cpp",
         "cstdarg": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "fstream": "cpp"
     }
 }

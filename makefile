@@ -1,5 +1,5 @@
 GLAD := -I src/lib/glad/include src/lib/glad/src/glad.c
-SDL := -I src/lib/SDL/include -L src/lib/SDL/lib -lSDL2main -lSDL2
+SDL := -I src/lib/SDL/include -lSDL2main -lSDL2
 
 NAME := gravsim
 
@@ -13,6 +13,7 @@ endif
 TAGS := $(GLAD) $(WIN_SDL) $(SDL)
 
 default:
-	g++ -o $(NAME) src/*.cpp $(TAGS)
+	g++ -o bin/$(NAME) src/*.cpp $(TAGS)
 run:
-	g++ -o $(NAME) src/*.cpp $(TAGS) && $(NAME)
+	g++ -o bin/$(NAME) src/*.cpp $(TAGS)
+	bin/$(NAME)
