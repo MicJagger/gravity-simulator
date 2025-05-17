@@ -8,7 +8,9 @@
 #include <vector>
 
 #ifdef __linux__
-    //#include
+    #include <signal.h>
+    #include <string.h>
+    #include <poll.h>
 #endif
 #ifdef _WIN32
     #include <conio.h>
@@ -39,38 +41,41 @@ void ConsoleThread(int& sigIn, int& sigOut, Universe& universe, Window& window) 
     std::vector<std::string> args;
     while (true) {
 
+        #ifdef __linux__
+            struct pollfd pfd = { STDIN_FILENO, POLLIN, 0 };
+            inputReady = (poll(&pfd, 1, 0));
+        #endif
         #ifdef _WIN32
             inputReady = _kbhit();
         #endif
-        #ifdef __linux__
-            inputReady = ();
-        #endif
 
         if (inputReady) {
+            if (inputReady == -1) continue;
 
+            #ifdef __linux__
+                std::getline(std::cin, input);
+            #endif
             #ifdef _WIN32
                 key = getch();
-            #endif
-            #ifdef __linux__
-                key = ();
+
+                if (key == '\b') {
+                    if (input.size() > 0) {
+                        input.pop_back();
+                    }
+                    std::cout << "\b \b";
+                }
+                else if (key == '\r') {
+                    std::cout << "\n";
+                }
+                else { //key != '\b' && key != '\r'
+                    input += key;
+                    std::cout << key;
+                }
+                if (key != '\n' && key != '\r') {
+                    continue;
+                }
             #endif
 
-            if (key == '\b') {
-                if (input.size() > 0) {
-                    input.pop_back();
-                }
-                std::cout << "\b \b";
-            }
-            else if (key == '\r') {
-                std::cout << "\n";
-            }
-            else { //key != '\b' && key != '\r'
-                input += key;
-                std::cout << key;
-            }
-            if (key != '\n' && key != '\r') {
-                continue;
-            }
             args = SplitArguments(input);
             input = "";
 
