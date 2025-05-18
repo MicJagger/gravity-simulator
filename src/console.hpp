@@ -246,9 +246,9 @@ inline int AddBody(Universe& universe) {
         return FAIL;
     }
     try {
-        body.x = std::stod(tempArgs[0]);
-        body.y = std::stod(tempArgs[1]);
-        body.z = std::stod(tempArgs[2]);
+        body.x = std::stod(tempArgs[0]) * SCALE;
+        body.y = std::stod(tempArgs[1]) * SCALE;
+        body.z = std::stod(tempArgs[2]) * SCALE;
     }
     catch (...) {
         FailedConversion();
@@ -263,9 +263,9 @@ inline int AddBody(Universe& universe) {
         return FAIL;
     }
     try {
-        body.xVel = std::stod(tempArgs[0]);
-        body.yVel = std::stod(tempArgs[1]);
-        body.zVel = std::stod(tempArgs[2]);
+        body.xVel = std::stod(tempArgs[0]) * SCALE;
+        body.yVel = std::stod(tempArgs[1]) * SCALE;
+        body.zVel = std::stod(tempArgs[2]) * SCALE;
     }
     catch (...) {
         FailedConversion();
@@ -275,7 +275,7 @@ inline int AddBody(Universe& universe) {
     std::cout << "Enter radius: ";
     std::getline(std::cin, input);
     try {
-        body.radius = std::stod(input);
+        body.radius = std::stod(input) * SCALE * RADIUS_SCALE;
     }
     catch (...) {
         FailedConversion();
@@ -285,7 +285,7 @@ inline int AddBody(Universe& universe) {
     std::cout << "Enter mass: ";
     std::getline(std::cin, input);
     try {
-        body.mass = std::stod(input);
+        body.mass = std::stod(input) * SCALE;
     }
     catch (...) {
         FailedConversion();
@@ -380,11 +380,11 @@ inline int Get(const std::vector<std::string>& args, Universe& universe, Window&
         }
         const Body body = universe.GetBodies().at(input[2]);
         std::cout << "Body: " << body.name << "\n"
-        "Coordinates: " << body.x << " " << body.y << " " << body.z << "\n"
-        "Directional Velocities: " << body.xVel << " " << body.yVel << " " << body.zVel << "\n"
-        "Velocity: " << sqrt((body.xVel * body.xVel) + (body.yVel * body.yVel) + (body.zVel * body.zVel)) << "\n"
-        "Radius: " << body.radius << "\n"
-        "Mass: " << body.mass << "\n"
+        "Coordinates: " << body.x / SCALE << " " << body.y / SCALE << " " << body.z / SCALE << "\n"
+        "Directional Velocities: " << body.xVel / SCALE << " " << body.yVel / SCALE << " " << body.zVel / SCALE << "\n"
+        "Velocity: " << sqrt((body.xVel / SCALE * body.xVel / SCALE) + (body.yVel / SCALE * body.yVel / SCALE) + (body.zVel / SCALE * body.zVel / SCALE)) << "\n"
+        "Radius: " << body.radius / SCALE / RADIUS_SCALE << "\n"
+        "Mass: " << body.mass / SCALE << "\n"
         "Luminosity: " << body.luminosity << "\n"
         "Color: " << body.red << " " << body.green << " " << body.blue << "\n";
     }
@@ -392,9 +392,9 @@ inline int Get(const std::vector<std::string>& args, Universe& universe, Window&
     else if (input[1] == "camera") {
         const Camera camera = window.GetCamera();
         std::cout << "Camera:\n"
-        "Coordinates: " << camera.x << " " << camera.y << " " << camera.z << "\n"
+        "Coordinates: " << camera.x / SCALE << " " << camera.y / SCALE << " " << camera.z / SCALE << "\n"
         "Angles: theta:" << camera.theta << " phi:" << camera.phi << " psi:" << camera.psi << "\n"
-        "Movement Speed: " << camera.speed << "\n"
+        "Movement Speed: " << camera.speed / SCALE << "\n"
         "Rotation Speed: " << camera.rotationSpeed << "\n"
         "Sensitivity: " << camera.sensitivity << "\n";
         if (camera.bodyName != "") {
@@ -485,9 +485,9 @@ inline int SetBody(std::vector<std::string>& input, Universe& universe) {
         }
         double x, y, z;
         try {
-            x = std::stod(input[4]);
-            y = std::stod(input[5]);
-            z = std::stod(input[6]);
+            x = std::stod(input[4]) * SCALE;
+            y = std::stod(input[5]) * SCALE;
+            z = std::stod(input[6]) * SCALE;
         }
         catch (...) {
             return FAIL;
@@ -503,9 +503,9 @@ inline int SetBody(std::vector<std::string>& input, Universe& universe) {
         }
         double xVel, yVel, zVel;
         try {
-            xVel = std::stod(input[4]);
-            yVel = std::stod(input[5]);
-            zVel = std::stod(input[6]);
+            xVel = std::stod(input[4]) * SCALE;
+            yVel = std::stod(input[5]) * SCALE;
+            zVel = std::stod(input[6]) * SCALE;
         }
         catch (...) {
             return FAIL;
@@ -521,7 +521,7 @@ inline int SetBody(std::vector<std::string>& input, Universe& universe) {
         }
         double velocity;
         try {
-            velocity = std::stod(input[4]);
+            velocity = std::stod(input[4]) * SCALE;
         }
         catch (...) {
             return FAIL;
@@ -539,7 +539,7 @@ inline int SetBody(std::vector<std::string>& input, Universe& universe) {
         }
         double radius;
         try {
-            radius = std::stod(input[4]);
+            radius = std::stod(input[4]) * SCALE * RADIUS_SCALE;
         }
         catch (...) {
             return FAIL;
@@ -553,7 +553,7 @@ inline int SetBody(std::vector<std::string>& input, Universe& universe) {
         }
         double mass;
         try {
-            mass = std::stod(input[4]);
+            mass = std::stod(input[4]) * SCALE;
         }
         catch (...) {
             return FAIL;
@@ -637,9 +637,9 @@ inline int SetCamera(std::vector<std::string>& input, Window& window) {
         }
         double x, y, z;
         try {
-            x = std::stod(input[3]);
-            y = std::stod(input[4]);
-            z = std::stod(input[5]);
+            x = std::stod(input[3]) * SCALE;
+            y = std::stod(input[4]) * SCALE;
+            z = std::stod(input[5]) * SCALE;
         }
         catch (...) {
             return FAIL;
@@ -669,7 +669,7 @@ inline int SetCamera(std::vector<std::string>& input, Window& window) {
         }
         double moveSpeed;
         try {
-            moveSpeed = std::stod(input[3]);
+            moveSpeed = std::stod(input[3]) * SCALE;
         }
         catch (...) {
             return FAIL;

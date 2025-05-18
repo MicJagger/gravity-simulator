@@ -43,11 +43,9 @@ int main(int argc, char* argv[]) {
     universe.SetTimeScaling(86400 * 7);
     universe.SetGravityScaling(1);
 
-    double scale = 1e-9;
-    double radiusScale = 100.0;
-    SpawnSolarSystemScaled(universe, scale, radiusScale, 0.1);
+    SpawnSolarSystemScaled(universe, SCALE, RADIUS_SCALE, 0.1);
 
-    window.SetCameraSpeed(c * scale * 1000);
+    window.SetCameraSpeed(c * SCALE * 1000);
     window.SetCameraRotationSpeed(120.0);
     window.SetCameraSensitivity(0.1);
 
