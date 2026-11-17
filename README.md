@@ -1,25 +1,14 @@
 # gravity-simulator
 
-3-Dimensional Realistic Gravity Simulator, written in C++ using SDL and OpenGL.
+3-Dimensional Realistic Gravity Simulator, written in Rust using -
 
 ![](content/screenshot.PNG)
 
 # Installation
 
-This project requies the g++ compiler to be installed. (``make``, ``Mingw32-make``)
+This project requies - https://wiki.libsdl.org/SDL3/README-linux
 
-1. ``git clone --recursive LINK``
-2. ``cd gravity-simulator``
-3. If you did not do ``--recursive`` during ``git clone``, run ``git submodule update --init --recursive``
-4. In ``./setup/``, run ``install-libs-OS.ext`` for your operating system (Linux requires sudo priveleges)
-
-    If on Linux, you may need to run ``chmod +x install-libs-linux.sh`` to make it executable.
-
-5. ``make`` to build, or ``make run`` to build and then run the executable
-
-IDE include paths are added for VSCode in ``.vscode/c_cpp_properties.json``.
-
-Note: Linux currently does not build yet, as it requires some work inside the console thread.
+1. -
 
 # Usage
 
