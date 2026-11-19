@@ -1,26 +1,22 @@
+mod bodies;
+mod state;
+mod universe;
+mod vertices;
+mod window;
+
 use std::{error::Error, thread, time::Duration};
 
-use sdl3::{event::Event, keyboard::Keycode, pixels::Color};
+use sdl3::{event::Event, keyboard::Keycode};
+
+use crate::{vertices::Vertices, window::Window};
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let sdl_context = sdl3::init().unwrap();
-    let video_subsystem = sdl_context.video().unwrap();
-    let window = video_subsystem
-        .window("test window", 800, 600)
-        .position_centered()
-        .build()
-        .unwrap();
-    let mut canvas = window.into_canvas();
-    let mut event_pump = sdl_context.event_pump().unwrap();
-    let (mut r, mut g, mut b) = (0u8, 0u8, 0u8);
-    let sleep_duration = Duration::new(0, 1_000_000_000u32 / 60);
+    env_logger::init();
+    let window_size = (800u32, 600u32);
+    let mut window = Window::new(window_size);
+    let vertices = Vertices::new();
     'running: loop {
-        r = r.wrapping_add(3);
-        g = g.wrapping_add(5);
-        b = b.wrapping_add(7);
-        canvas.set_draw_color(Color::RGB(r, g, b));
-        canvas.clear();
-        for event in event_pump.poll_iter() {
+        for event in window.event_pump.poll_iter() {
             match event {
                 Event::Quit { .. }
                 | Event::KeyDown {
@@ -30,8 +26,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 _ => {}
             }
         }
-        canvas.present();
-        thread::sleep(sleep_duration);
+        window.render(&vertices);
+        thread::sleep(Duration::from_nanos(1_000_000_000u64 / 60));
     }
     Ok(())
 }

@@ -4,4 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-sdl3 = { version = "0.22.1", features = ["build-from-source-static"] }
+bytemuck = "1.25.2"
+env_logger = "0.11.11"
+pollster = "1.0.2"
+sdl3 = { version = "0.22.1", features = ["build-from-source-static", "raw-window-handle"] }
+wgpu = "30.0.2"
