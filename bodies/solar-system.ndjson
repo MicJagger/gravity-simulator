@@ -1,0 +1,11 @@
+{ "name": "sol", "position": [0.0, 0.0, 0.0], "velocity": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "rotation_velocity": [0.0, 0.0, 0.0], "mass": 1988400e24, "radius": 695700e3, "luminosity": 382.8e24 }
+{ "name": "mercury", "position": [0.0, 0.0, 0.0], "velocity": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "rotation_velocity": [0.0, 0.0, 0.0], "mass": 0.33010e24, "radius": 2439.7e3, "luminosity": 0.0 }
+{ "name": "venus", "position": [0.0, 0.0, 0.0], "velocity": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "rotation_velocity": [0.0, 0.0, 0.0], "mass": 4.8673e24, "radius": 6051.8e3, "luminosity": 0.0 }
+{ "name": "earth", "position": [0.0, 0.0, 0.0], "velocity": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "rotation_velocity": [0.0, 0.0, 0.0], "mass": 5.9722e24, "radius": 6371.000e3, "luminosity": 0.0 }
+{ "name": "moon", "position": [0.0, 0.0, 0.0], "velocity": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "rotation_velocity": [0.0, 0.0, 0.0], "mass": 0.07346e24, "radius": 1737.4e3, "luminosity": 0.0 }
+{ "name": "mars", "position": [0.0, 0.0, 0.0], "velocity": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "rotation_velocity": [0.0, 0.0, 0.0], "mass": 0.64169e24, "radius": 3389.5e3, "luminosity": 0.0 }
+{ "name": "jupiter", "position": [0.0, 0.0, 0.0], "velocity": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "rotation_velocity": [0.0, 0.0, 0.0], "mass": 1898.13e24, "radius": 69911e3, "luminosity": 0.0 }
+{ "name": "saturn", "position": [0.0, 0.0, 0.0], "velocity": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "rotation_velocity": [0.0, 0.0, 0.0], "mass": 568.32e24, "radius": 58232e3, "luminosity": 0.0 }
+{ "name": "uranus", "position": [0.0, 0.0, 0.0], "velocity": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "rotation_velocity": [0.0, 0.0, 0.0], "mass": 86.811e24, "radius": 25362e3, "luminosity": 0.0 }
+{ "name": "neptune", "position": [0.0, 0.0, 0.0], "velocity": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "rotation_velocity": [0.0, 0.0, 0.0], "mass": 102.409e24, "radius": 24622e3, "luminosity": 0.0 }
+{ "name": "pluto", "position": [0.0, 0.0, 0.0], "velocity": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "rotation_velocity": [0.0, 0.0, 0.0], "mass": 0.01303e24, "radius": 1188e3, "luminosity": 0.0 }

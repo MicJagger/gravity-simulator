@@ -12,36 +12,14 @@ use std::{
 
 use sdl3::event::Event;
 
-use crate::{bodies::Body, universe::Universe, vertices::Vertices, window::Window};
+use crate::{universe::Universe, vertices::Vertices, window::Window};
 
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
     let window_size = (800u32, 600u32);
     let mut window = Window::new(window_size);
     let mut universe = Universe::new();
-
-    let name = String::from("test body");
-    let body = Body {
-        name: name.clone(),
-        position: (0.0, 0.0, 0.0),
-        velocity: (0.0, 0.0, 0.0),
-        rotation: (0.0, 0.0, 0.0),
-        rotation_velocity: (0.0, 0.0, 0.0),
-        mass: 1.0,
-        radius: 1.0,
-        luminosity: 0.0,
-    };
-    universe.bodies.add_body(body)?;
-    let body_ref = universe.bodies.get_body(&name).expect("should work");
-    *body_ref.mass = 2.0;
-    let body_ref = universe.bodies.get_body(&name).expect("should work");
-    assert!(*body_ref.mass == 2.0);
-    universe.bodies.remove_body(&name).expect("should work");
-    if !universe.bodies.get_body(&name).is_err() {
-        panic!("should not have worked");
-    }
-    // *body_ref.mass = 1.0;
-
+    universe.bodies.load_bodies("bodies/solar-system.ndjson")?;
     let frametime_target = 1_000_000_000i64 / 60;
     'running: loop {
         let start = Instant::now();
